@@ -5,25 +5,21 @@
 #include <mach/mach_types.h>
 #include <unistd.h>
 #include <sys/sysctl.h>
-
 #include <thread>
 
 double MacOSMetric::getCpuUsage() {
-    const auto prev_ticks = this->getTicks();
-    if (!prev_ticks) {
-        return std::numeric_limits<double>::quiet_NaN();
-    }
-    std::this_thread::sleep_for(std::chrono::seconds(1));
-    const auto curr_ticks = this->getTicks();
-    if (!curr_ticks) {
+    const auto current_ticks = this->getTicks();
+    if (!current_ticks || !this->prevTick_) {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    const auto sum_curr_ticks = curr_ticks->user + curr_ticks->system + curr_ticks->nice;
-    const auto sum_prev_ticks = prev_ticks->user + prev_ticks->system + prev_ticks->nice;
+    const auto sum_curr_ticks = current_ticks->user + current_ticks->system + current_ticks->nice;
+    const auto sum_prev_ticks = this->prevTick_->user + this->prevTick_->system + this->prevTick_->nice;
 
     const int64_t delta_busy = static_cast<int64_t>(sum_curr_ticks) - static_cast<int64_t>(sum_prev_ticks);
-    const int64_t delta_total = delta_busy + (static_cast<int64_t>(curr_ticks->idle) - static_cast<int64_t>(prev_ticks->idle));
+    const int64_t delta_total = delta_busy + (static_cast<int64_t>(current_ticks->idle) - static_cast<int64_t>(this->prevTick_->idle));
+
+    this->prevTick_ = current_ticks;
 
     return (static_cast<double>(delta_busy) / static_cast<double>(delta_total)) * 100.0;
 }
@@ -60,7 +56,7 @@ double MacOSMetric::getMemoryUsage() {
     return total_used_bytes / static_cast<double>(total_mem) * 100;
 }
 
-std::optional<Tiсk> MacOSMetric::getTicks() const {
+std::optional<Tick> MacOSMetric::getTicks() const {
     processor_info_array_t cpuInfo;
     mach_msg_type_number_t cpuCount;
     natural_t numCpus;
@@ -88,7 +84,7 @@ std::optional<Tiсk> MacOSMetric::getTicks() const {
 
     vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(cpuInfo), cpuCount * sizeof(integer_t));
 
-    Tiсk t{};
+    Tick t{};
 
     t.idle = idle;
     t.user = user;
