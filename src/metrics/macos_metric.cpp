@@ -57,12 +57,13 @@ double MacOSMetric::getMemoryUsage() {
 }
 
 std::optional<Tick> MacOSMetric::getTicks() const {
+    const mach_port_t host_port = mach_host_self();
     processor_info_array_t cpuInfo;
     mach_msg_type_number_t cpuCount;
     natural_t numCpus;
 
-    kern_return_t err = host_processor_info(
-        mach_host_self(),
+    const kern_return_t err = host_processor_info(
+        host_port,
         PROCESSOR_CPU_LOAD_INFO,
         &numCpus,
         &cpuInfo,
