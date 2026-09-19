@@ -13,5 +13,12 @@ int main() {
         std::cout << "CPU: " << cpu_usage << "%" << std::endl;
     }
 
+    double mem_usage = metric->getMemoryUsage();
+    if (std::isnan(mem_usage)) {
+        std::cout << "Memory: n/a" << std::endl;
+    } else {
+        std::cout << "Memory: " << mem_usage << "%" << std::endl;
+    }
+
     return 0;
 }

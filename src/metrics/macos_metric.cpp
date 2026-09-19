@@ -2,6 +2,9 @@
 
 #include <mach/mach.h>
 #include <mach/mach_host.h>
+#include <mach/mach_types.h>
+#include <unistd.h>
+#include <sys/sysctl.h>
 
 #include <thread>
 
@@ -26,7 +29,35 @@ double MacOSMetric::getCpuUsage() {
 }
 
 double MacOSMetric::getMemoryUsage() {
-    return 0.0;
+    mach_port_t host_port = mach_host_self();
+    mach_msg_type_number_t host_size = HOST_VM_INFO64_COUNT;
+    vm_statistics64_data_t vm_stats;
+
+    kern_return_t status = host_statistics64(
+        host_port,
+        HOST_VM_INFO64,
+        reinterpret_cast<host_info64_t>(&vm_stats),
+        &host_size
+    );
+
+    if (status != KERN_SUCCESS) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    vm_size_t page_size;
+    host_page_size(host_port, &page_size);
+
+    double total_used_bytes =
+        (static_cast<double>(vm_stats.active_count)
+        + vm_stats.inactive_count
+        + vm_stats.wire_count
+        + vm_stats.compressor_page_count) * page_size;
+
+    uint64_t total_mem;
+    size_t len = sizeof(total_mem);
+    sysctlbyname("hw.memsize", &total_mem, &len, nullptr, 0);
+
+    return total_used_bytes / static_cast<double>(total_mem) * 100;
 }
 
 std::optional<Tiсk> MacOSMetric::getTicks() const {
