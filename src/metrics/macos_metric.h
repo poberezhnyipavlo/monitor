@@ -1,11 +1,10 @@
 #pragma once
 
-#include <cstdint>
 #include <optional>
 
 #include "isystem_metrics.h"
 
-struct Tiks {
+struct Tiсk {
     uint64_t user;
     uint64_t system;
     uint64_t idle;
@@ -17,5 +16,5 @@ public:
     double getCpuUsage() override;
     double getMemoryUsage() override;
 private:
-    std::optional<Tiks> getTicks() const;
+    [[nodiscard]]std::optional<Tiсk> getTicks() const;
 };

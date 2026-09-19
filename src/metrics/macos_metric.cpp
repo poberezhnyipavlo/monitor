@@ -29,7 +29,7 @@ double MacOSMetric::getMemoryUsage() {
     return 0.0;
 }
 
-std::optional<Tiks> MacOSMetric::getTicks() const {
+std::optional<Tiсk> MacOSMetric::getTicks() const {
     processor_info_array_t cpuInfo;
     mach_msg_type_number_t cpuCount;
     natural_t numCpus;
@@ -57,7 +57,7 @@ std::optional<Tiks> MacOSMetric::getTicks() const {
 
     vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(cpuInfo), cpuCount * sizeof(integer_t));
 
-    Tiks t{};
+    Tiсk t{};
 
     t.idle = idle;
     t.user = user;
