@@ -1,24 +1,27 @@
+#include <iomanip>
 #include <iostream>
+#include <sstream>
+#include <cmath>
+
 #include "metrics/metric_factory.h"
 
-using namespace std;
+std::string formatMetric(const double value, const std::string_view unit) {
+    if (isnan(value)) {
+        return "n/a";
+    }
+
+    std::ostringstream oss;
+
+    oss << std::fixed << std::setprecision(2) << value << " " << unit;
+
+    return oss.str();
+}
 
 int main() {
-    auto metric = MetricFactory::make();
+    const auto metric = MetricFactory::make();
 
-    double cpu_usage = metric->getCpuUsage();
-    if (std::isnan(cpu_usage)) {
-        std::cout << "CPU: n/a" << std::endl;
-    } else {
-        std::cout << "CPU: " << cpu_usage << "%" << std::endl;
-    }
-
-    double mem_usage = metric->getMemoryUsage();
-    if (std::isnan(mem_usage)) {
-        std::cout << "Memory: n/a" << std::endl;
-    } else {
-        std::cout << "Memory: " << mem_usage << "%" << std::endl;
-    }
+    std::cout << "CPU: " << formatMetric(metric->getCpuUsage(), "%") << std::endl;
+    std::cout << "Memory: " << formatMetric(metric->getMemoryUsage(), "%") << std::endl;
 
     return 0;
 }

@@ -9,31 +9,31 @@
 #include <thread>
 
 double MacOSMetric::getCpuUsage() {
-    auto prev_ticks = this->getTicks();
+    const auto prev_ticks = this->getTicks();
     if (!prev_ticks) {
         return std::numeric_limits<double>::quiet_NaN();
     }
     std::this_thread::sleep_for(std::chrono::seconds(1));
-    auto curr_ticks = this->getTicks();
+    const auto curr_ticks = this->getTicks();
     if (!curr_ticks) {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    auto sum_curr_ticks = curr_ticks->user + curr_ticks->system + curr_ticks->nice;
-    auto sum_prev_ticks = prev_ticks->user + prev_ticks->system + prev_ticks->nice;
+    const auto sum_curr_ticks = curr_ticks->user + curr_ticks->system + curr_ticks->nice;
+    const auto sum_prev_ticks = prev_ticks->user + prev_ticks->system + prev_ticks->nice;
 
-    int64_t delta_busy = static_cast<int64_t>(sum_curr_ticks) - static_cast<int64_t>(sum_prev_ticks);
-    int64_t delta_total = delta_busy + (static_cast<int64_t>(curr_ticks->idle) - static_cast<int64_t>(prev_ticks->idle));
+    const int64_t delta_busy = static_cast<int64_t>(sum_curr_ticks) - static_cast<int64_t>(sum_prev_ticks);
+    const int64_t delta_total = delta_busy + (static_cast<int64_t>(curr_ticks->idle) - static_cast<int64_t>(prev_ticks->idle));
 
     return (static_cast<double>(delta_busy) / static_cast<double>(delta_total)) * 100.0;
 }
 
 double MacOSMetric::getMemoryUsage() {
-    mach_port_t host_port = mach_host_self();
+    const mach_port_t host_port = mach_host_self();
     mach_msg_type_number_t host_size = HOST_VM_INFO64_COUNT;
     vm_statistics64_data_t vm_stats;
 
-    kern_return_t status = host_statistics64(
+    const kern_return_t status = host_statistics64(
         host_port,
         HOST_VM_INFO64,
         reinterpret_cast<host_info64_t>(&vm_stats),
@@ -47,7 +47,7 @@ double MacOSMetric::getMemoryUsage() {
     vm_size_t page_size;
     host_page_size(host_port, &page_size);
 
-    double total_used_bytes =
+    const double total_used_bytes =
         (static_cast<double>(vm_stats.active_count)
         + vm_stats.inactive_count
         + vm_stats.wire_count
