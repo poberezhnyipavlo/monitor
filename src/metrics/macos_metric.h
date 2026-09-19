@@ -17,5 +17,5 @@ public:
     double getCpuUsage() override;
     double getMemoryUsage() override;
 private:
-    [[nodiscard]] std::optional<Tiks> getTicks() const;
+    std::optional<Tiks> getTicks() const;
 };
