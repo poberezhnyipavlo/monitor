@@ -2,9 +2,16 @@
 #include <iostream>
 #include <sstream>
 #include <cmath>
+#include <csignal>
 #include <thread>
 
 #include "metrics/metric_factory.h"
+
+std::atomic<bool> g_stopRequested{false};
+
+void signalHandler(int) {
+    g_stopRequested.store(true);
+}
 
 std::string formatMetric(const double value, const std::string_view unit) {
     if (isnan(value)) {
@@ -38,9 +45,15 @@ void monitoringLoop(std::stop_token token) {
 }
 
 int main() {
+    std::signal(SIGINT, signalHandler);
+
     std::jthread monitoringThread(monitoringLoop);
 
-    std::cin.get();
+    while (!g_stopRequested.load()) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
+
+    monitoringThread.request_stop();
 
     return 0;
 }
