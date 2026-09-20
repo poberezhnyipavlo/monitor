@@ -1,7 +1,5 @@
 #include <iomanip>
-#include <iostream>
 #include <sstream>
-#include <cmath>
 #include <csignal>
 #include <thread>
 #include <sys/socket.h>
@@ -9,30 +7,13 @@
 
 #include "metrics/metric_factory.h"
 #include "network/socket.h"
+#include "core/logger.h"
+#include "metrics/format_metric.h"
 
 std::atomic<bool> g_stopRequested{false};
 
-std::mutex coutMutex;
-
-void log(const std::string& message) {
-    std::lock_guard<std::mutex> lock(coutMutex);
-    std::cout << message << std::endl;
-}
-
 void signalHandler(int) {
     g_stopRequested.store(true);
-}
-
-std::string formatMetric(const double value, const std::string_view unit) {
-    if (isnan(value)) {
-        return "n/a";
-    }
-
-    std::ostringstream oss;
-
-    oss << std::fixed << std::setprecision(2) << value << " " << unit;
-
-    return oss.str();
 }
 
 void monitoringLoop(std::stop_token token) {

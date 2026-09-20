@@ -11,8 +11,10 @@ add_executable(
         src/metrics/macos_metric.h
         src/metrics/metric_factory.cpp
         src/metrics/metric_factory.h
-        src/network/socket.cpp
         src/network/socket.h
+        src/core/logger.cpp
+        src/core/logger.h
+        src/metrics/format_metric.h
 )
 
 target_include_directories(monitor PRIVATE src)
