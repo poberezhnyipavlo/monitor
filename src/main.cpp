@@ -9,6 +9,13 @@
 
 std::atomic<bool> g_stopRequested{false};
 
+std::mutex coutMutex;
+
+void log(const std::string& message) {
+    std::lock_guard<std::mutex> lock(coutMutex);
+    std::cout << message << std::endl;
+}
+
 void signalHandler(int) {
     g_stopRequested.store(true);
 }
@@ -33,12 +40,14 @@ void monitoringLoop(std::stop_token token) {
         std::time_t now_time = std::chrono::system_clock::to_time_t(now);
         const std::tm* now_tm = std::localtime(&now_time);
 
-        std::cout
+        std::ostringstream output;
+        output
             << "[" << std::put_time(now_tm, "%H:%M:%S") << "] "
             << "CPU: " << formatMetric(metric->getCpuUsage(), "%")
             << " | "
-            << "Memory: " << formatMetric(metric->getMemoryUsage(), "%")
-            << std::endl;
+            << "Memory: " << formatMetric(metric->getMemoryUsage(), "%");
+
+        log(output.str());
 
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
