@@ -4,8 +4,11 @@
 #include <cmath>
 #include <csignal>
 #include <thread>
+#include <sys/socket.h>
+#include <netinet/in.h>
 
 #include "metrics/metric_factory.h"
+#include "network/socket.h"
 
 std::atomic<bool> g_stopRequested{false};
 
@@ -53,10 +56,24 @@ void monitoringLoop(std::stop_token token) {
     }
 }
 
+void networkLoop(std::stop_token token) {
+    while (!token.stop_requested()) {
+        try {
+            const int fd = socket(AF_INET, SOCK_STREAM, 0);
+            Socket sock(fd);
+        } catch (const std::exception& e) {
+            log("Failed to create socket: " + std::string(e.what()));
+            std::this_thread::sleep_for(std::chrono::seconds(3));
+        }
+    }
+}
+
 int main() {
     std::signal(SIGINT, signalHandler);
 
     std::jthread monitoringThread(monitoringLoop);
+
+    std::jthread networkThread(networkLoop);
 
     while (!g_stopRequested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
