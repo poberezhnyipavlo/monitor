@@ -40,8 +40,47 @@ void monitoringLoop(std::stop_token token) {
 void networkLoop(std::stop_token token) {
     while (!token.stop_requested()) {
         try {
-            const int fd = socket(AF_INET, SOCK_STREAM, 0);
+            const int fd = socket(AF_INET, SOCK_DGRAM, 0);
             Socket sock(fd);
+
+            sockaddr_in server_addr{};
+            server_addr.sin_family = AF_INET;
+            server_addr.sin_addr.s_addr = INADDR_ANY;
+            server_addr.sin_port = htons(9000);
+
+            const int bind_result = bind(
+                sock.get(),
+                reinterpret_cast<sockaddr*>(&server_addr),
+                sizeof(server_addr)
+            );
+
+            if (bind_result < 0) {
+                throw std::runtime_error("Failed to bind socket");
+            }
+
+            while (!token.stop_requested()) {
+                char buffer[1024];
+
+                sockaddr_in sender_addr{};
+                socklen_t sender_len = sizeof(sender_addr);
+
+                const ssize_t bytes_received = recvfrom(
+                    sock.get(),
+                    buffer,
+                    sizeof(buffer),
+                    0,
+                    reinterpret_cast<sockaddr*>(&sender_addr),
+                    &sender_len
+                );
+
+                if (bytes_received < 0) {
+                    throw std::runtime_error("Failed to receive data");
+                }
+
+                const std::string message(buffer, bytes_received);
+                log("Received: " + message);
+
+            }
         } catch (const std::exception& e) {
             log("Failed to create socket: " + std::string(e.what()));
             std::this_thread::sleep_for(std::chrono::seconds(3));
