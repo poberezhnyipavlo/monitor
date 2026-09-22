@@ -20,7 +20,15 @@ double LinuxMetric::getCpuUsage() {
 }
 
 double LinuxMetric::getMemoryUsage() {
-    return 0.0;
+    const auto mem_info = this->getMemInfo();
+
+    if (!mem_info) {
+        return std::numeric_limits<double>::quiet_NaN();
+    }
+
+    const int64_t used = mem_info->memTotal - mem_info->memAvailable;
+
+    return static_cast<double>(used) / static_cast<double>(mem_info->memTotal) * 100;
 }
 
 std::optional<TickLinux> LinuxMetric::getTicks() const {
@@ -44,4 +52,37 @@ std::optional<TickLinux> LinuxMetric::getTicks() const {
         >> tick.steal;
 
     return tick;
+}
+
+std::optional<MemInfoLinux> LinuxMetric::getMemInfo() const {
+    std::ifstream file("/proc/meminfo");
+    std::string line;
+    int64_t mem_total = 0;
+    int64_t mem_available = 0;
+
+    while (std::getline(file, line)) {
+        if (line.starts_with("MemTotal:")) {
+            mem_total = this->parseMemLine(line);
+        } else if (line.starts_with("MemAvailable:")) {
+            mem_available = this->parseMemLine(line);
+        }
+
+        if (mem_total != 0 && mem_available != 0) {
+            break;
+        }
+    }
+
+    MemInfoLinux mem_info{.memTotal = mem_total, .memAvailable = mem_available};
+
+    return mem_info;
+}
+
+int64_t LinuxMetric::parseMemLine(const std::string& line) const {
+    std::istringstream iss(line);
+    std::string label;
+    int64_t value;
+
+    iss >> label >> value;
+
+    return value;
 }

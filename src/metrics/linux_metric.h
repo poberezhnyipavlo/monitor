@@ -3,6 +3,8 @@
 #include <optional>
 
 #include "isystem_metrics.h"
+#include <cstdint>
+#include <string>
 
 struct TickLinux {
     unsigned long long user;
@@ -23,6 +25,11 @@ struct TickLinux {
     }
 };
 
+struct MemInfoLinux {
+    int64_t memTotal;
+    int64_t memAvailable;
+};
+
 class LinuxMetric : public ISystemMetrics {
 public:
     LinuxMetric() : prevTick_(getTicks()) {}
@@ -30,6 +37,9 @@ public:
     double getCpuUsage() override;
     double getMemoryUsage() override;
 private:
-    [[nodiscard]]std::optional<TickLinux> getTicks() const;
     std::optional<TickLinux> prevTick_;
+
+    [[nodiscard]]std::optional<TickLinux> getTicks() const;
+    [[nodiscard]]std::optional<MemInfoLinux> getMemInfo() const;
+    [[nodiscard]]int64_t parseMemLine(const std::string& line) const;
 };
