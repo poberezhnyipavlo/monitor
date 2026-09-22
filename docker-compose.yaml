@@ -1,0 +1,7 @@
+services:
+  linux-dev:
+    build: .
+    volumes:
+      - .:/app
+    stdin_open: true
+    tty: true
