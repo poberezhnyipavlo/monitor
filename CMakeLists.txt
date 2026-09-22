@@ -1,17 +1,15 @@
-cmake_minimum_required(VERSION 4.3)
+cmake_minimum_required(VERSION 4.2)
 project(monitor)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-find_path(RRD_INCLUDE_DIR rrd.h PATHS /opt/homebrew/opt/rrdtool/include)
-find_library(RRD_LIBRARY rrd PATHS /opt/homebrew/opt/rrdtool/lib)
+find_package(PkgConfig REQUIRED)
+pkg_check_modules(RRD REQUIRED IMPORTED_TARGET librrd)
 
 add_executable(
         monitor src/main.cpp
         src/metrics/isystem_metrics.h
-        src/metrics/macos_metric.cpp
-        src/metrics/macos_metric.h
         src/metrics/metric_factory.cpp
         src/metrics/metric_factory.h
         src/network/socket.h
@@ -25,5 +23,17 @@ add_executable(
         src/storage/base_rrd_storage.h
 )
 
-target_include_directories(monitor PRIVATE src ${RRD_INCLUDE_DIR})
-target_link_libraries(monitor PRIVATE ${RRD_LIBRARY})
+if(APPLE)
+    target_sources(monitor PRIVATE
+            src/metrics/macos_metric.cpp
+            src/metrics/macos_metric.h
+    )
+elseif(UNIX AND NOT APPLE)
+    target_sources(monitor PRIVATE
+            src/metrics/linux_metric.cpp
+            src/metrics/linux_metric.h
+    )
+endif()
+
+target_include_directories(monitor PRIVATE src)
+target_link_libraries(monitor PRIVATE PkgConfig::RRD)
