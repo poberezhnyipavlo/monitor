@@ -4,7 +4,7 @@
 
 #include "isystem_metrics.h"
 
-struct Tick {
+struct TickMacOS {
     uint64_t user;
     uint64_t system;
     uint64_t idle;
@@ -23,6 +23,6 @@ public:
     double getCpuUsage() override;
     double getMemoryUsage() override;
 private:
-    [[nodiscard]]std::optional<Tick> getTicks() const;
-    std::optional<Tick> prevTick_;
+    [[nodiscard]]std::optional<TickMacOS> getTicks() const;
+    std::optional<TickMacOS> prevTick_;
 };

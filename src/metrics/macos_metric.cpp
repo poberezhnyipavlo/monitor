@@ -56,7 +56,7 @@ double MacOSMetric::getMemoryUsage() {
     return total_used_bytes / static_cast<double>(total_mem) * 100;
 }
 
-std::optional<Tick> MacOSMetric::getTicks() const {
+std::optional<TickMacOS> MacOSMetric::getTicks() const {
     const mach_port_t host_port = mach_host_self();
     processor_info_array_t cpuInfo;
     mach_msg_type_number_t cpuCount;
@@ -85,7 +85,7 @@ std::optional<Tick> MacOSMetric::getTicks() const {
 
     vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(cpuInfo), cpuCount * sizeof(integer_t));
 
-    Tick t{};
+    TickMacOS t{};
 
     t.idle = idle;
     t.user = user;
