@@ -11,12 +11,12 @@ double LinuxMetric::getCpuUsage() {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    const double busy_delta = static_cast<double>(current_ticks->busy()) - static_cast<double>(this->prevTick_->busy());
-    const double total_delta = static_cast<double>(current_ticks->total()) - static_cast<double>(this->prevTick_->total());
+    const int64_t busy_delta = static_cast<int64_t>(current_ticks->busy()) - static_cast<int64_t>(this->prevTick_->busy());
+    const int64_t total_delta = static_cast<int64_t>(current_ticks->total()) - static_cast<int64_t>(this->prevTick_->total());
 
     this->prevTick_ = current_ticks;
 
-    return busy_delta / total_delta * 100;
+    return static_cast<double>(busy_delta) / static_cast<double>(total_delta) * 100;
 }
 
 double LinuxMetric::getMemoryUsage() {
