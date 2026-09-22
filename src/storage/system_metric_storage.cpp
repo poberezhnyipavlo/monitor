@@ -2,6 +2,7 @@
 
 #include <rrd.h>
 #include <sstream>
+#include <vector>
 
 #include "rrd_mutex.h"
 #include "storage_exceptions.h"
