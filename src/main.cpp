@@ -9,8 +9,11 @@
 #include "network/socket.h"
 #include "core/logger.h"
 #include "metrics/format_metric.h"
+#include "storage/system_metric_storage.h"
 
 std::atomic<bool> g_stopRequested{false};
+std::atomic<bool> g_monitorringFailed{false};
+std::atomic<bool> g_networkFailed{false};
 
 void signalHandler(int) {
     g_stopRequested.store(true);
@@ -19,25 +22,32 @@ void signalHandler(int) {
 void monitoringLoop(std::stop_token token) {
     try {
         const auto metric = MetricFactory::make();
+        SystemMetrixStorage storage("system_metrics.rrd");
 
         while (!token.stop_requested()) {
             auto now = std::chrono::system_clock::now();
             std::time_t now_time = std::chrono::system_clock::to_time_t(now);
             const std::tm* now_tm = std::localtime(&now_time);
 
+            const auto cpu = metric->getCpuUsage();
+            const auto memory = metric->getMemoryUsage();
             std::ostringstream output;
             output
                 << "[" << std::put_time(now_tm, "%H:%M:%S") << "] "
-                << "CPU: " << formatMetric(metric->getCpuUsage(), "%")
+                << "CPU: " << formatMetric(cpu, "%")
                 << " | "
-                << "Memory: " << formatMetric(metric->getMemoryUsage(), "%");
+                << "Memory: " << formatMetric(memory, "%");
 
             log(output.str());
 
+            storage.save(cpu, memory);
             std::this_thread::sleep_for(std::chrono::seconds(1));
         }
+    } catch (PermissionDeniedException& e) {
+        log("FATAL (permissions): " + std::string(e.what()));
+        g_monitorringFailed.store(true);
     } catch (const std::exception& e) {
-
+        log("Monitoring loop failed: " + std::string(e.what()));
     }
 }
 
@@ -100,6 +110,10 @@ int main() {
     std::jthread networkThread(networkLoop);
 
     while (!g_stopRequested.load()) {
+        if (g_monitorringFailed.load() && g_networkFailed.load()) {
+            log("Both threads failed, shutting down");
+            break;
+        }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 

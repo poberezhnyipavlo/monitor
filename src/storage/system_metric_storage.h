@@ -17,5 +17,5 @@ protected:
 private:
     std::string systemMetricsPath_;
 
-    void createFile();
+    void createFile() const;
 };
