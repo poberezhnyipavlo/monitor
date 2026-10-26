@@ -1,4 +1,4 @@
-#include "macos_metric.h"
+#include "MacosMetric.h"
 
 #include <mach/mach.h>
 #include <mach/mach_host.h>
@@ -9,17 +9,17 @@
 
 double MacOSMetric::getCpuUsage() {
     const auto current_ticks = this->getTicks();
-    if (!current_ticks || !this->prevTick_) {
+    if (!current_ticks || !this->prev_tick_) {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
     const auto sum_curr_ticks = current_ticks->user + current_ticks->system + current_ticks->nice;
-    const auto sum_prev_ticks = this->prevTick_->user + this->prevTick_->system + this->prevTick_->nice;
+    const auto sum_prev_ticks = this->prev_tick_->user + this->prev_tick_->system + this->prev_tick_->nice;
 
     const int64_t delta_busy = static_cast<int64_t>(sum_curr_ticks) - static_cast<int64_t>(sum_prev_ticks);
-    const int64_t delta_total = delta_busy + (static_cast<int64_t>(current_ticks->idle) - static_cast<int64_t>(this->prevTick_->idle));
+    const int64_t delta_total = delta_busy + (static_cast<int64_t>(current_ticks->idle) - static_cast<int64_t>(this->prev_tick_->idle));
 
-    this->prevTick_ = current_ticks;
+    this->prev_tick_ = current_ticks;
 
     return (static_cast<double>(delta_busy) / static_cast<double>(delta_total)) * 100.0;
 }
@@ -58,16 +58,16 @@ double MacOSMetric::getMemoryUsage() {
 
 std::optional<TickMacOS> MacOSMetric::getTicks() const {
     const mach_port_t host_port = mach_host_self();
-    processor_info_array_t cpuInfo;
-    mach_msg_type_number_t cpuCount;
-    natural_t numCpus;
+    processor_info_array_t cpu_info;
+    mach_msg_type_number_t cpu_count;
+    natural_t num_cpus;
 
     const kern_return_t err = host_processor_info(
         host_port,
         PROCESSOR_CPU_LOAD_INFO,
-        &numCpus,
-        &cpuInfo,
-        &cpuCount
+        &num_cpus,
+        &cpu_info,
+        &cpu_count
     );
 
     if (err != KERN_SUCCESS) {
@@ -76,14 +76,14 @@ std::optional<TickMacOS> MacOSMetric::getTicks() const {
 
     uint64_t user = 0, system = 0, idle = 0, nice = 0;
 
-    for (natural_t i = 0; i < numCpus; i++) {
-        user += cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_USER];
-        system += cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_SYSTEM];
-        idle += cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_IDLE];
-        nice += cpuInfo[(CPU_STATE_MAX * i) + CPU_STATE_NICE];
+    for (natural_t i = 0; i < num_cpus; i++) {
+        user += cpu_info[(CPU_STATE_MAX * i) + CPU_STATE_USER];
+        system += cpu_info[(CPU_STATE_MAX * i) + CPU_STATE_SYSTEM];
+        idle += cpu_info[(CPU_STATE_MAX * i) + CPU_STATE_IDLE];
+        nice += cpu_info[(CPU_STATE_MAX * i) + CPU_STATE_NICE];
     }
 
-    vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(cpuInfo), cpuCount * sizeof(integer_t));
+    vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(cpu_info), cpu_count * sizeof(integer_t));
 
     TickMacOS t{};
 

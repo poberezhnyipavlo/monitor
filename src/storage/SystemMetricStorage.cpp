@@ -1,17 +1,17 @@
-#include "system_metric_storage.h"
+#include "SystemMetricStorage.h"
 
 #include <rrd.h>
 #include <sstream>
 #include <vector>
 
-#include "rrd_mutex.h"
-#include "storage_exceptions.h"
+#include "RrdMutex.h"
+#include "StorageExceptions.h"
 
-std::string SystemMetrixStorage::getPath() const {
-    return this->systemMetricsPath_;
+std::string SystemMetricStorage::getPath() const {
+    return this->system_metrics_path_;
 }
 
-void SystemMetrixStorage::save(double cpu, double memory) {
+void SystemMetricStorage::save(double cpu, double memory) {
     std::lock_guard<std::mutex> lock(rrdMutex());
 
     std::ostringstream update_value;
@@ -19,7 +19,7 @@ void SystemMetrixStorage::save(double cpu, double memory) {
 
     const std::vector<std::string> args = {
         "update",
-        this->systemMetricsPath_,
+        this->system_metrics_path_,
         update_value.str()
     };
 
@@ -41,14 +41,14 @@ void SystemMetrixStorage::save(double cpu, double memory) {
 }
 
 
-void SystemMetrixStorage::createFile() const {
+void SystemMetricStorage::createFile() const {
     this->ensureAccess();
 
     std::lock_guard<std::mutex> lock(rrdMutex());
 
     std::vector<std::string> args = {
         "create",
-        this->systemMetricsPath_,
+        this->system_metrics_path_,
         "--step",
         "1",
         "DS:cpu:GAUGE:5:0:100",

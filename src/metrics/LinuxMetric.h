@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "isystem_metrics.h"
+#include "ISystemMetrics.h"
 #include <cstdint>
 #include <string>
 
@@ -26,18 +26,18 @@ struct TickLinux {
 };
 
 struct MemInfoLinux {
-    int64_t memTotal;
-    int64_t memAvailable;
+    int64_t mem_total;
+    int64_t mem_available;
 };
 
 class LinuxMetric : public ISystemMetrics {
 public:
-    LinuxMetric() : prevTick_(getTicks()) {}
+    LinuxMetric() : prev_tick_(getTicks()) {}
 
     double getCpuUsage() override;
     double getMemoryUsage() override;
 private:
-    std::optional<TickLinux> prevTick_;
+    std::optional<TickLinux> prev_tick_;
 
     [[nodiscard]]std::optional<TickLinux> getTicks() const;
     [[nodiscard]]std::optional<MemInfoLinux> getMemInfo() const;

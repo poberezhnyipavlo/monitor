@@ -5,11 +5,11 @@
 #include <fstream>
 #include <cerrno>
 
-#include "storage_exceptions.h"
+#include "StorageExceptions.h"
 
-class BaseRddStorage {
+class BaseRrdStorage {
 public:
-    virtual ~BaseRddStorage() = default;
+    virtual ~BaseRrdStorage() = default;
 
 protected:
     [[nodiscard]] virtual std::string getPath() const = 0;

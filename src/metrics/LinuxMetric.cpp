@@ -1,4 +1,4 @@
-#include "linux_metric.h"
+#include "LinuxMetric.h"
 
 #include <fstream>
 #include <sstream>
@@ -7,14 +7,14 @@
 
 double LinuxMetric::getCpuUsage() {
     const auto current_ticks = this->getTicks();
-    if (!current_ticks || !this->prevTick_) {
+    if (!current_ticks || !this->prev_tick_) {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    const int64_t busy_delta = static_cast<int64_t>(current_ticks->busy()) - static_cast<int64_t>(this->prevTick_->busy());
-    const int64_t total_delta = static_cast<int64_t>(current_ticks->total()) - static_cast<int64_t>(this->prevTick_->total());
+    const int64_t busy_delta = static_cast<int64_t>(current_ticks->busy()) - static_cast<int64_t>(this->prev_tick_->busy());
+    const int64_t total_delta = static_cast<int64_t>(current_ticks->total()) - static_cast<int64_t>(this->prev_tick_->total());
 
-    this->prevTick_ = current_ticks;
+    this->prev_tick_ = current_ticks;
 
     return static_cast<double>(busy_delta) / static_cast<double>(total_delta) * 100;
 }
@@ -26,9 +26,9 @@ double LinuxMetric::getMemoryUsage() {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    const int64_t used = mem_info->memTotal - mem_info->memAvailable;
+    const int64_t used = mem_info->mem_total - mem_info->mem_available;
 
-    return static_cast<double>(used) / static_cast<double>(mem_info->memTotal) * 100;
+    return static_cast<double>(used) / static_cast<double>(mem_info->mem_total) * 100;
 }
 
 std::optional<TickLinux> LinuxMetric::getTicks() const {
@@ -72,7 +72,7 @@ std::optional<MemInfoLinux> LinuxMetric::getMemInfo() const {
         }
     }
 
-    MemInfoLinux mem_info{.memTotal = mem_total, .memAvailable = mem_available};
+    MemInfoLinux mem_info{.mem_total = mem_total, .mem_available = mem_available};
 
     return mem_info;
 }

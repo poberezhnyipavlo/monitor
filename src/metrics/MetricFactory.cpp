@@ -1,9 +1,9 @@
-#include "metric_factory.h"
+#include "MetricFactory.h"
 
 #ifdef __APPLE__
-    #include "macos_metric.h"
+    #include "MacosMetric.h"
 #elif __linux__
-    #include "linux_metric.h"
+    #include "LinuxMetric.h"
 #endif
 
 std::unique_ptr<ISystemMetrics> MetricFactory::make() {

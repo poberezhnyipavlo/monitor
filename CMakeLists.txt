@@ -9,29 +9,29 @@ pkg_check_modules(RRD REQUIRED IMPORTED_TARGET librrd)
 
 add_executable(
         monitor src/main.cpp
-        src/metrics/isystem_metrics.h
-        src/metrics/metric_factory.cpp
-        src/metrics/metric_factory.h
+        src/metrics/ISystemMetrics.h
+        src/metrics/MetricFactory.cpp
+        src/metrics/MetricFactory.h
         src/network/socket.h
         src/core/logger.cpp
         src/core/logger.h
-        src/metrics/format_metric.h
-        src/storage/system_metric_storage.cpp
-        src/storage/system_metric_storage.h
-        src/storage/rrd_mutex.h
-        src/storage/storage_exceptions.h
-        src/storage/base_rrd_storage.h
+        src/metrics/FormatMetric.h
+        src/storage/SystemMetricStorage.cpp
+        src/storage/SystemMetricStorage.h
+        src/storage/RrdMutex.h
+        src/storage/StorageExceptions.h
+        src/storage/BaseRrdStorage.h
 )
 
 if(APPLE)
     target_sources(monitor PRIVATE
-            src/metrics/macos_metric.cpp
-            src/metrics/macos_metric.h
+            src/metrics/MacosMetric.cpp
+            src/metrics/MacosMetric.h
     )
 elseif(UNIX AND NOT APPLE)
     target_sources(monitor PRIVATE
-            src/metrics/linux_metric.cpp
-            src/metrics/linux_metric.h
+            src/metrics/LinuxMetric.cpp
+            src/metrics/LinuxMetric.h
     )
 endif()
 

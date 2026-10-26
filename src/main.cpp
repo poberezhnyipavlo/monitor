@@ -5,24 +5,24 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
-#include "metrics/metric_factory.h"
-#include "network/socket.h"
-#include "core/logger.h"
-#include "metrics/format_metric.h"
-#include "storage/system_metric_storage.h"
+#include "metrics/MetricFactory.h"
+#include "network/Socket.h"
+#include "core/Logger.h"
+#include "metrics/FormatMetric.h"
+#include "storage/SystemMetricStorage.h"
 
-std::atomic<bool> g_stopRequested{false};
-std::atomic<bool> g_monitorringFailed{false};
-std::atomic<bool> g_networkFailed{false};
+std::atomic<bool> stop_requested{false};
+std::atomic<bool> monitoring_failed{false};
+std::atomic<bool> network_failed{false};
 
 void signalHandler(int) {
-    g_stopRequested.store(true);
+    stop_requested.store(true);
 }
 
 void monitoringLoop(std::stop_token token) {
     try {
         const auto metric = MetricFactory::make();
-        SystemMetrixStorage storage("system_metrics.rrd");
+        SystemMetricStorage storage("system_metrics.rrd");
 
         while (!token.stop_requested()) {
             auto now = std::chrono::system_clock::now();
@@ -45,7 +45,7 @@ void monitoringLoop(std::stop_token token) {
         }
     } catch (PermissionDeniedException& e) {
         log("FATAL (permissions): " + std::string(e.what()));
-        g_monitorringFailed.store(true);
+        monitoring_failed.store(true);
     } catch (const std::exception& e) {
         log("Monitoring loop failed: " + std::string(e.what()));
     }
@@ -105,19 +105,19 @@ void networkLoop(std::stop_token token) {
 int main() {
     std::signal(SIGINT, signalHandler);
 
-    std::jthread monitoringThread(monitoringLoop);
+    std::jthread monitoring_thread(monitoringLoop);
 
-    std::jthread networkThread(networkLoop);
+    std::jthread network_thread(networkLoop);
 
-    while (!g_stopRequested.load()) {
-        if (g_monitorringFailed.load() && g_networkFailed.load()) {
+    while (!stop_requested.load()) {
+        if (monitoring_failed.load() && network_failed.load()) {
             log("Both threads failed, shutting down");
             break;
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    monitoringThread.request_stop();
+    monitoring_thread.request_stop();
 
     return 0;
 }

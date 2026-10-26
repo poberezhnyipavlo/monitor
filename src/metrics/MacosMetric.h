@@ -2,7 +2,7 @@
 
 #include <optional>
 
-#include "isystem_metrics.h"
+#include "ISystemMetrics.h"
 
 struct TickMacOS {
     uint64_t user;
@@ -13,7 +13,7 @@ struct TickMacOS {
 
 class MacOSMetric : public ISystemMetrics {
 public:
-    MacOSMetric() : prevTick_(getTicks()) {
+    MacOSMetric() : prev_tick_(getTicks()) {
         // Перший вимір у конструкторі свідомо "прогріває" стан, щоб getCpuUsage()
         // одразу мав з чим порівнювати. Точність цього першого виміру не критична —
         // короткий інтервал між конструктором і першим getCpuUsage() дає шумний
@@ -24,5 +24,5 @@ public:
     double getMemoryUsage() override;
 private:
     [[nodiscard]]std::optional<TickMacOS> getTicks() const;
-    std::optional<TickMacOS> prevTick_;
+    std::optional<TickMacOS> prev_tick_;
 };
