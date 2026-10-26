@@ -21,10 +21,11 @@ add_executable(
         src/storage/RrdMutex.h
         src/storage/StorageExceptions.h
         src/storage/BaseRrdStorage.h
-        src/network/ILineReceiver.cpp
         src/network/ILineReceiver.h
         src/network/LineSplitter.cpp
         src/network/LineSplitter.h
+        src/network/TcpLineReceiver.h
+        src/network/TcpLineReceiver.cpp
 )
 
 if(APPLE)
