@@ -1,10 +1,10 @@
 #include "Logger.h"
 
-#include <mutex>
 #include <iostream>
+#include <mutex>
 
 namespace {
-    std::mutex cout_mutex;
+std::mutex cout_mutex;
 }
 
 void log(const std::string& message) {

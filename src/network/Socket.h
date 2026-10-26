@@ -5,7 +5,7 @@
 
 class Socket {
 public:
-    explicit Socket(int fd): fd_(fd) {
+    explicit Socket(int fd) : fd_(fd) {
         if (fd_ < 0) {
             throw std::runtime_error("Invalid socket file descriptor");
         }
@@ -18,7 +18,8 @@ public:
     Socket(const Socket&) = delete;
     Socket& operator=(const Socket&) = delete;
 
-    [[nodiscard]]int get() const { return fd_; }
+    [[nodiscard]] int get() const { return fd_; }
+
 private:
     int fd_;
 };

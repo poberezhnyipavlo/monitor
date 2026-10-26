@@ -1,9 +1,9 @@
 #pragma once
 
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <sstream>
-#include <cmath>
 
 inline std::string formatMetric(const double value, const std::string_view unit) {
     if (std::isnan(value)) {

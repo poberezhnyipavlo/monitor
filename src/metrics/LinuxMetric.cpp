@@ -1,9 +1,9 @@
 #include "LinuxMetric.h"
 
-#include <fstream>
-#include <sstream>
 #include <cmath>
+#include <fstream>
 #include <limits>
+#include <sstream>
 
 double LinuxMetric::getCpuUsage() {
     const auto current_ticks = this->getTicks();
@@ -11,8 +11,10 @@ double LinuxMetric::getCpuUsage() {
         return std::numeric_limits<double>::quiet_NaN();
     }
 
-    const int64_t busy_delta = static_cast<int64_t>(current_ticks->busy()) - static_cast<int64_t>(this->prev_tick_->busy());
-    const int64_t total_delta = static_cast<int64_t>(current_ticks->total()) - static_cast<int64_t>(this->prev_tick_->total());
+    const int64_t busy_delta = static_cast<int64_t>(current_ticks->busy()) -
+                               static_cast<int64_t>(this->prev_tick_->busy());
+    const int64_t total_delta = static_cast<int64_t>(current_ticks->total()) -
+                                static_cast<int64_t>(this->prev_tick_->total());
 
     this->prev_tick_ = current_ticks;
 
@@ -40,16 +42,8 @@ std::optional<TickLinux> LinuxMetric::getTicks() const {
     std::string label;
 
     TickLinux tick{};
-    iss
-        >> label
-        >> tick.user
-        >> tick.nice
-        >> tick.system
-        >> tick.idle
-        >> tick.iowait
-        >> tick.irq
-        >> tick.softirq
-        >> tick.steal;
+    iss >> label >> tick.user >> tick.nice >> tick.system >> tick.idle >> tick.iowait >> tick.irq >>
+        tick.softirq >> tick.steal;
 
     return tick;
 }

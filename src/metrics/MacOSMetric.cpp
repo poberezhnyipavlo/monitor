@@ -3,8 +3,9 @@
 #include <mach/mach.h>
 #include <mach/mach_host.h>
 #include <mach/mach_types.h>
-#include <unistd.h>
 #include <sys/sysctl.h>
+#include <unistd.h>
+
 #include <thread>
 
 double MacOSMetric::getCpuUsage() {
@@ -14,10 +15,13 @@ double MacOSMetric::getCpuUsage() {
     }
 
     const auto sum_curr_ticks = current_ticks->user + current_ticks->system + current_ticks->nice;
-    const auto sum_prev_ticks = this->prev_tick_->user + this->prev_tick_->system + this->prev_tick_->nice;
+    const auto sum_prev_ticks =
+        this->prev_tick_->user + this->prev_tick_->system + this->prev_tick_->nice;
 
-    const int64_t delta_busy = static_cast<int64_t>(sum_curr_ticks) - static_cast<int64_t>(sum_prev_ticks);
-    const int64_t delta_total = delta_busy + (static_cast<int64_t>(current_ticks->idle) - static_cast<int64_t>(this->prev_tick_->idle));
+    const int64_t delta_busy =
+        static_cast<int64_t>(sum_curr_ticks) - static_cast<int64_t>(sum_prev_ticks);
+    const int64_t delta_total = delta_busy + (static_cast<int64_t>(current_ticks->idle) -
+                                              static_cast<int64_t>(this->prev_tick_->idle));
 
     this->prev_tick_ = current_ticks;
 
@@ -44,10 +48,9 @@ double MacOSMetric::getMemoryUsage() {
     host_page_size(host_port, &page_size);
 
     const double total_used_bytes =
-        (static_cast<double>(vm_stats.active_count)
-        + vm_stats.inactive_count
-        + vm_stats.wire_count
-        + vm_stats.compressor_page_count) * page_size;
+        (static_cast<double>(vm_stats.active_count) + vm_stats.inactive_count +
+         vm_stats.wire_count + vm_stats.compressor_page_count) *
+        page_size;
 
     uint64_t total_mem;
     size_t len = sizeof(total_mem);
@@ -62,13 +65,8 @@ std::optional<TickMacOS> MacOSMetric::getTicks() const {
     mach_msg_type_number_t cpu_count;
     natural_t num_cpus;
 
-    const kern_return_t err = host_processor_info(
-        host_port,
-        PROCESSOR_CPU_LOAD_INFO,
-        &num_cpus,
-        &cpu_info,
-        &cpu_count
-    );
+    const kern_return_t err =
+        host_processor_info(host_port, PROCESSOR_CPU_LOAD_INFO, &num_cpus, &cpu_info, &cpu_count);
 
     if (err != KERN_SUCCESS) {
         return std::nullopt;
@@ -83,7 +81,11 @@ std::optional<TickMacOS> MacOSMetric::getTicks() const {
         nice += cpu_info[(CPU_STATE_MAX * i) + CPU_STATE_NICE];
     }
 
-    vm_deallocate(mach_task_self(), reinterpret_cast<vm_address_t>(cpu_info), cpu_count * sizeof(integer_t));
+    vm_deallocate(
+        mach_task_self(),
+        reinterpret_cast<vm_address_t>(cpu_info),
+        cpu_count * sizeof(integer_t)
+    );
 
     TickMacOS t{};
 

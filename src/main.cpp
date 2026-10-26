@@ -1,23 +1,22 @@
+#include <netinet/in.h>
+#include <sys/socket.h>
+
+#include <csignal>
 #include <iomanip>
 #include <sstream>
-#include <csignal>
 #include <thread>
-#include <sys/socket.h>
-#include <netinet/in.h>
 
-#include "metrics/MetricFactory.h"
-#include "network/Socket.h"
 #include "core/Logger.h"
 #include "metrics/FormatMetric.h"
+#include "metrics/MetricFactory.h"
+#include "network/Socket.h"
 #include "storage/SystemMetricStorage.h"
 
 std::atomic<bool> stop_requested{false};
 std::atomic<bool> monitoring_failed{false};
 std::atomic<bool> network_failed{false};
 
-void signalHandler(int) {
-    stop_requested.store(true);
-}
+void signalHandler(int) { stop_requested.store(true); }
 
 void monitoringLoop(std::stop_token token) {
     try {
@@ -32,11 +31,9 @@ void monitoringLoop(std::stop_token token) {
             const auto cpu = metric->getCpuUsage();
             const auto memory = metric->getMemoryUsage();
             std::ostringstream output;
-            output
-                << "[" << std::put_time(now_tm, "%H:%M:%S") << "] "
-                << "CPU: " << formatMetric(cpu, "%")
-                << " | "
-                << "Memory: " << formatMetric(memory, "%");
+            output << "[" << std::put_time(now_tm, "%H:%M:%S") << "] "
+                   << "CPU: " << formatMetric(cpu, "%") << " | "
+                   << "Memory: " << formatMetric(memory, "%");
 
             log(output.str());
 
@@ -62,11 +59,8 @@ void networkLoop(std::stop_token token) {
             server_addr.sin_addr.s_addr = INADDR_ANY;
             server_addr.sin_port = htons(9000);
 
-            const int bind_result = bind(
-                sock.get(),
-                reinterpret_cast<sockaddr*>(&server_addr),
-                sizeof(server_addr)
-            );
+            const int bind_result =
+                bind(sock.get(), reinterpret_cast<sockaddr*>(&server_addr), sizeof(server_addr));
 
             if (bind_result < 0) {
                 throw std::runtime_error("Failed to bind socket");
@@ -93,7 +87,6 @@ void networkLoop(std::stop_token token) {
 
                 const std::string message(buffer, bytes_received);
                 log("Received: " + message);
-
             }
         } catch (const std::exception& e) {
             log("Failed to create socket: " + std::string(e.what()));

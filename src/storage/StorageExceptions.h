@@ -5,8 +5,7 @@
 
 class StorageException : public std::runtime_error {
 public:
-    explicit StorageException(const std::string& message)
-        : std::runtime_error(message) {}
+    explicit StorageException(const std::string& message) : std::runtime_error(message) {}
 };
 
 class PermissionDeniedException : public StorageException {

@@ -22,7 +22,8 @@ public:
 
     double getCpuUsage() override;
     double getMemoryUsage() override;
+
 private:
-    [[nodiscard]]std::optional<TickMacOS> getTicks() const;
+    [[nodiscard]] std::optional<TickMacOS> getTicks() const;
     std::optional<TickMacOS> prev_tick_;
 };

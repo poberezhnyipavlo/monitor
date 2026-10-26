@@ -1,10 +1,10 @@
 #pragma once
 
+#include <cstdint>
 #include <optional>
+#include <string>
 
 #include "ISystemMetrics.h"
-#include <cstdint>
-#include <string>
 
 struct TickLinux {
     uint64_t user;
@@ -20,9 +20,7 @@ struct TickLinux {
         return user + nice + system + irq + softirq + steal;
     }
 
-    [[nodiscard]] unsigned long long total() const {
-        return busy() + idle + iowait;
-    }
+    [[nodiscard]] unsigned long long total() const { return busy() + idle + iowait; }
 };
 
 struct MemInfoLinux {
@@ -36,10 +34,11 @@ public:
 
     double getCpuUsage() override;
     double getMemoryUsage() override;
+
 private:
     std::optional<TickLinux> prev_tick_;
 
-    [[nodiscard]]std::optional<TickLinux> getTicks() const;
-    [[nodiscard]]std::optional<MemInfoLinux> getMemInfo() const;
-    [[nodiscard]]int64_t parseMemLine(const std::string& line) const;
+    [[nodiscard]] std::optional<TickLinux> getTicks() const;
+    [[nodiscard]] std::optional<MemInfoLinux> getMemInfo() const;
+    [[nodiscard]] int64_t parseMemLine(const std::string& line) const;
 };

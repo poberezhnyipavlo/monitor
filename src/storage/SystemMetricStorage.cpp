@@ -1,15 +1,14 @@
 #include "SystemMetricStorage.h"
 
 #include <rrd.h>
+
 #include <sstream>
 #include <vector>
 
 #include "RrdMutex.h"
 #include "StorageExceptions.h"
 
-std::string SystemMetricStorage::getPath() const {
-    return this->system_metrics_path_;
-}
+std::string SystemMetricStorage::getPath() const { return this->system_metrics_path_; }
 
 void SystemMetricStorage::save(double cpu, double memory) {
     std::lock_guard<std::mutex> lock(rrdMutex());
@@ -39,7 +38,6 @@ void SystemMetricStorage::save(double cpu, double memory) {
         throw StorageException("Failed to update system metrics");
     }
 }
-
 
 void SystemMetricStorage::createFile() const {
     this->ensureAccess();
