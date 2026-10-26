@@ -1,7 +1,7 @@
 #include "MetricFactory.h"
 
 #ifdef __APPLE__
-    #include "MacosMetric.h"
+    #include "MacOSMetric.h"
 #elif __linux__
     #include "LinuxMetric.h"
 #endif

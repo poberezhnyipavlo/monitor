@@ -12,9 +12,9 @@ add_executable(
         src/metrics/ISystemMetrics.h
         src/metrics/MetricFactory.cpp
         src/metrics/MetricFactory.h
-        src/network/socket.h
-        src/core/logger.cpp
-        src/core/logger.h
+        src/network/Socket.h
+        src/core/Logger.cpp
+        src/core/Logger.h
         src/metrics/FormatMetric.h
         src/storage/SystemMetricStorage.cpp
         src/storage/SystemMetricStorage.h
@@ -25,8 +25,8 @@ add_executable(
 
 if(APPLE)
     target_sources(monitor PRIVATE
-            src/metrics/MacosMetric.cpp
-            src/metrics/MacosMetric.h
+            src/metrics/MacOSMetric.cpp
+            src/metrics/MacOSMetric.h
     )
 elseif(UNIX AND NOT APPLE)
     target_sources(monitor PRIVATE
