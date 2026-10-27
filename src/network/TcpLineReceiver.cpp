@@ -139,6 +139,11 @@ bool TcpLineReceiver::readClient(Client& client, const LineHandler& on_line) {
     std::array<char, kReadChunk> buffer{};
     const ssize_t received = recv(client.socket.get(), buffer.data(), buffer.size(), 0);
 
+    if (received == 0) {
+        this->logClient(client, "closed by peer");
+        return false;
+    }
+
     if (received < 0) {
         if (errno == EINTR || errno == EAGAIN) {
             return true;

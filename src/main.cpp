@@ -1,4 +1,4 @@
-#include <sys/socket.h>
+#include <metric_protocol/MetricProtocol.h>
 
 #include <atomic>
 #include <chrono>
@@ -8,11 +8,21 @@
 #include <thread>
 
 #include "core/Logger.h"
+#include "ingest/LinePrinters.h"
 #include "metrics/FormatMetric.h"
 #include "metrics/MetricFactory.h"
+#include "network/TcpLineReceiver.h"
 #include "storage/SystemMetricStorage.h"
 
+namespace {
+constexpr uint16_t kMetricsPort = 9002;
+constexpr uint16_t kLogsPort = 9003;
+constexpr  std::size_t kMaxLogLineLen = 256;
+constexpr std::chrono::seconds kMetricsIdleTimeout{10};
+}
+
 std::atomic<bool> stop_requested{false};
+std::atomic<bool> receiver_failed{false};
 
 void signalHandler(int) { stop_requested.store(true); }
 
@@ -45,16 +55,58 @@ void monitoringLoop(std::stop_token token) {
     }
 }
 
+void receiverLoop(std::stop_token stop, ILineReceiver& receiver, const LineHandler& on_line) {
+    try {
+        receiver.run(stop, on_line);
+    } catch (const std::exception& e) {
+        log("FATAL (receiver): " + std::string(e.what()));
+        receiver_failed.store(true);
+        stop_requested.store(true);
+    }
+}
+
 int main() {
     std::signal(SIGINT, signalHandler);
 
+    TcpLineReceiver metrics_receiver(
+        "metrics",
+        {
+            .port = kMetricsPort,
+            .max_line_len = metric::k_max_message_len,
+            .idle_timeout = kMetricsIdleTimeout,
+        }
+    );
+
+    TcpLineReceiver logs_receiver(
+        "logs",
+        {
+            .port = kLogsPort,
+            .max_line_len = kMaxLogLineLen,
+            .idle_timeout = std::nullopt,
+        }
+    );
+
     std::jthread monitoring_thread(monitoringLoop);
+    std::jthread metric_thread(
+        receiverLoop,
+        std::ref(metrics_receiver),
+        LineHandler(printMetricLine)
+    );
+    std::jthread logs_thread(
+        receiverLoop,
+        std::ref(logs_receiver),
+        LineHandler(printLogLine)
+    );
 
     while (!stop_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
 
-    monitoring_thread.request_stop();
+    log("Stopping");
 
-    return 0;
+    monitoring_thread.request_stop();
+    metric_thread.request_stop();
+    logs_thread.request_stop();
+
+    return receiver_failed.load() ? 1 : 0;
 }

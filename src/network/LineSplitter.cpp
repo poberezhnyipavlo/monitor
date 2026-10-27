@@ -8,11 +8,13 @@ std::size_t LineSplitter::feed(std::string_view bytes, const LineHandler& on_lin
     std::size_t dropped = 0;
     for (const char c : bytes) {
         if (c == '\n') {
-            std::string_view line = this->line_;
-            if (!line.empty() && line.back() == '\r') {
-                line.remove_suffix(1);
+            if (!this->skipping_) {
+                std::string_view line = this->line_;
+                if (!line.empty() && line.back() == '\r') {
+                    line.remove_suffix(1);
+                }
+                on_line(line);
             }
-            on_line(line);
             this->line_.clear();
             this->skipping_ = false;
         } else if (this->skipping_) {

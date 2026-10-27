@@ -36,6 +36,8 @@ add_executable(
         src/network/TcpLineReceiver.cpp
         src/network/UdpLineReceiver.cpp
         src/network/UdpLineReceiver.h
+        src/ingest/LinePrinters.cpp
+        src/ingest/LinePrinters.h
 )
 
 if(APPLE)
