@@ -23,9 +23,10 @@ add_executable(
         src/storage/BaseRrdStorage.h
         src/network/ILineReceiver.h
         src/network/LineSplitter.cpp
-        src/network/LineSplitter.h
         src/network/TcpLineReceiver.h
         src/network/TcpLineReceiver.cpp
+        src/network/UdpLineReceiver.cpp
+        src/network/UdpLineReceiver.h
 )
 
 if(APPLE)

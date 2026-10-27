@@ -8,9 +8,9 @@
 
 #include <array>
 #include <cerrno>
+#include <map>
 #include <stop_token>
 #include <system_error>
-#include <map>
 
 #include "core/Logger.h"
 
@@ -91,7 +91,7 @@ void TcpLineReceiver::run(std::stop_token stop, const LineHandler& on_line) {
 Socket TcpLineReceiver::listen() const {
     Socket listener(socket(AF_INET, SOCK_STREAM, 0));
 
-    setOptional(listener.get(), SOL_SOCKET, SO_REUSEADDR, 1 ,"SO_REUSEADDR");
+    setOptional(listener.get(), SOL_SOCKET, SO_REUSEADDR, 1, "SO_REUSEADDR");
 
     sockaddr_in address{};
     address.sin_family = AF_INET;
@@ -178,6 +178,5 @@ void TcpLineReceiver::closeClients() {
 
 void TcpLineReceiver::logClient(const Client& client, const std::string& message) const {
     log("[" + name_ + "] client #" + std::to_string(client.id) + " (port " +
-        std::to_string(client.peer_port) + ") " + message
-    );
+        std::to_string(client.peer_port) + ") " + message);
 }

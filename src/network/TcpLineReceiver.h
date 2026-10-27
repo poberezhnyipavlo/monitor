@@ -17,7 +17,7 @@ struct TcpReceiverOptions {
     std::optional<std::chrono::seconds> idle_timeout;
 };
 
-class TcpLineReceiver: public ILineReceiver {
+class TcpLineReceiver : public ILineReceiver {
 public:
     TcpLineReceiver(std::string name, TcpReceiverOptions options);
 
