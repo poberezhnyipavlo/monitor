@@ -20,28 +20,28 @@ constexpr int kListenBacklog = 8;
 constexpr std::size_t kReadChunk = 1024;
 
 constexpr int kKeepAliveIdleS = 15;
-constexpr int kKeepAiveIntervalS = 5;
+constexpr int kKeepAliveIntervalS = 5;
 constexpr int kKeepAliveProbes = 3;
 
 [[noreturn]] void throwErrno(const std::string& what) {
     throw std::system_error(errno, std::generic_category(), what);
 }
 
-void setOptional(int fd, int level, int option, int value, const char* what) {
+void setOption(int fd, int level, int option, int value, const char* what) {
     if (setsockopt(fd, level, option, &value, sizeof(value)) < 0) {
         throwErrno(what);
     }
 }
 
 void enableKeepAlive(int fd) {
-    setOptional(fd, SOL_SOCKET, SO_KEEPALIVE, 1, "SO_KEEPALIVE");
+    setOption(fd, SOL_SOCKET, SO_KEEPALIVE, 1, "SO_KEEPALIVE");
 #ifdef __APPLE__
-    setOptional(fd, IPPROTO_TCP, TCP_KEEPALIVE, kKeepAliveIdleS, "TCP_KEEPALIVE");
+    setOption(fd, IPPROTO_TCP, TCP_KEEPALIVE, kKeepAliveIdleS, "TCP_KEEPALIVE");
 #else
-    setOptional(fd, IPPROTO_TCP, TCP_KEEPIDDLE, kKeepAliveIdleS, "TCP_KEEPIDLE");
+    setOption(fd, IPPROTO_TCP, TCP_KEEPIDLE, kKeepAliveIdleS, "TCP_KEEPIDLE");
 #endif
-    setOptional(fd, IPPROTO_TCP, TCP_KEEPINTVL, kKeepAiveIntervalS, "TCP_KEEPINTVL");
-    setOptional(fd, IPPROTO_TCP, TCP_KEEPCNT, kKeepAliveProbes, "TCP_KEEPCNT");
+    setOption(fd, IPPROTO_TCP, TCP_KEEPINTVL, kKeepAliveIntervalS, "TCP_KEEPINTVL");
+    setOption(fd, IPPROTO_TCP, TCP_KEEPCNT, kKeepAliveProbes, "TCP_KEEPCNT");
 }
 }  // namespace
 
@@ -91,7 +91,7 @@ void TcpLineReceiver::run(std::stop_token stop, const LineHandler& on_line) {
 Socket TcpLineReceiver::listen() const {
     Socket listener(socket(AF_INET, SOCK_STREAM, 0));
 
-    setOptional(listener.get(), SOL_SOCKET, SO_REUSEADDR, 1, "SO_REUSEADDR");
+    setOption(listener.get(), SOL_SOCKET, SO_REUSEADDR, 1, "SO_REUSEADDR");
 
     sockaddr_in address{};
     address.sin_family = AF_INET;

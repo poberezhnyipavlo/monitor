@@ -10,7 +10,7 @@
 void printMetricLine(std::string_view line) {
     const auto message = metric::parse(line);
     if (!message) {
-        log("[metric] rejected: " + std::string(line));
+        log("[metrics] rejected: " + std::string(line));
         return;
     }
 

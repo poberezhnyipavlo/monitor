@@ -52,7 +52,7 @@ void UdpLineReceiver::run(std::stop_token stop, const LineHandler& on_line) {
         }
 
         std::string_view line(buffer.data(), static_cast<std::size_t>(received));
-        while (!line.empty() && line.back() == '\n' || line.back() == '\r') {
+        while (!line.empty() && (line.back() == '\n' || line.back() == '\r')) {
             line.remove_suffix(1);
         }
 

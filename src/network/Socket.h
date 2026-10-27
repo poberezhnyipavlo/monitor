@@ -2,6 +2,8 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
+#include <utility>
+#include <stdexcept>
 
 class Socket {
 public:
