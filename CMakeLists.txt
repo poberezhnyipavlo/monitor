@@ -7,6 +7,15 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(RRD REQUIRED IMPORTED_TARGET librrd)
 
+include(FetchContent)
+FetchContent_Declare(
+        metric_protocol
+        GIT_REPOSITORY https://github.com/poberezhnyipavlo/metric-protocol.git
+        GIT_TAG v2.1.0
+        GIT_SHALLOW TRUE
+)
+FetchContent_MakeAvailable(metric_protocol)
+
 add_executable(
         monitor src/main.cpp
         src/metrics/ISystemMetrics.h
@@ -42,4 +51,4 @@ elseif(UNIX AND NOT APPLE)
 endif()
 
 target_include_directories(monitor PRIVATE src)
-target_link_libraries(monitor PRIVATE PkgConfig::RRD)
+target_link_libraries(monitor PRIVATE PkgConfig::RRD metric_protocol::metric_protocol)
