@@ -11,7 +11,7 @@ include(FetchContent)
 FetchContent_Declare(
         metric_protocol
         GIT_REPOSITORY https://github.com/poberezhnyipavlo/metric-protocol.git
-        GIT_TAG v2.1.0
+        GIT_TAG v3.0.0
         GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(metric_protocol)

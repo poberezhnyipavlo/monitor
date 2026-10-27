@@ -1,4 +1,5 @@
 #include <metric_protocol/MetricProtocol.h>
+#include <metric_protocol/LogProtocol.h>
 
 #include <atomic>
 #include <chrono>
@@ -17,7 +18,6 @@
 namespace {
 constexpr uint16_t kMetricsPort = 9002;
 constexpr uint16_t kLogsPort = 9003;
-constexpr std::size_t kMaxLogLineLen = 256;
 constexpr std::chrono::seconds kMetricsIdleTimeout{10};
 }  // namespace
 
@@ -75,7 +75,7 @@ int main() {
         "metrics",
         {
             .port = kMetricsPort,
-            .max_line_len = metric::k_max_message_len,
+            .max_line_len = metric::kMaxMessageLen,
             .idle_timeout = kMetricsIdleTimeout,
         }
     );
@@ -84,7 +84,7 @@ int main() {
         "logs",
         {
             .port = kLogsPort,
-            .max_line_len = kMaxLogLineLen,
+            .max_line_len = logproto::kMaxLineLen,
             .idle_timeout = std::nullopt,
         }
     );
