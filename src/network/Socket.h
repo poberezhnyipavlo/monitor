@@ -2,8 +2,9 @@
 
 #include <sys/socket.h>
 #include <unistd.h>
-#include <utility>
+
 #include <stdexcept>
+#include <utility>
 
 class Socket {
 public:
@@ -32,7 +33,9 @@ public:
         return *this;
     }
 
-    [[nodiscard]] int get() const { return fd_; }
+    [[nodiscard]] int get() const {
+        return fd_;
+    }
 
 private:
     int fd_;

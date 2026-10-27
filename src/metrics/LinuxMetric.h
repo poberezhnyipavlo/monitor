@@ -20,7 +20,9 @@ struct TickLinux {
         return user + nice + system + irq + softirq + steal;
     }
 
-    [[nodiscard]] unsigned long long total() const { return busy() + idle + iowait; }
+    [[nodiscard]] unsigned long long total() const {
+        return busy() + idle + iowait;
+    }
 };
 
 struct MemInfoLinux {

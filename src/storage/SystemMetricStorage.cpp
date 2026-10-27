@@ -8,7 +8,9 @@
 #include "RrdMutex.h"
 #include "StorageExceptions.h"
 
-std::string SystemMetricStorage::getPath() const { return this->system_metrics_path_; }
+std::string SystemMetricStorage::getPath() const {
+    return this->system_metrics_path_;
+}
 
 void SystemMetricStorage::save(double cpu, double memory) {
     std::lock_guard<std::mutex> lock(rrdMutex());

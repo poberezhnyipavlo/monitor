@@ -24,7 +24,9 @@ constexpr std::chrono::seconds kMetricsIdleTimeout{10};
 std::atomic<bool> stop_requested{false};
 std::atomic<bool> receiver_failed{false};
 
-void signalHandler(int) { stop_requested.store(true); }
+void signalHandler(int) {
+    stop_requested.store(true);
+}
 
 void monitoringLoop(std::stop_token token) {
     try {
