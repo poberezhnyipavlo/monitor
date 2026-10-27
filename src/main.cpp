@@ -67,6 +67,7 @@ void receiverLoop(std::stop_token stop, ILineReceiver& receiver, const LineHandl
 
 int main() {
     std::signal(SIGINT, signalHandler);
+    std::signal(SIGTERM, signalHandler);
 
     TcpLineReceiver metrics_receiver(
         "metrics",
