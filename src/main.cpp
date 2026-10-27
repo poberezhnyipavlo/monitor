@@ -17,9 +17,9 @@
 namespace {
 constexpr uint16_t kMetricsPort = 9002;
 constexpr uint16_t kLogsPort = 9003;
-constexpr  std::size_t kMaxLogLineLen = 256;
+constexpr std::size_t kMaxLogLineLen = 256;
 constexpr std::chrono::seconds kMetricsIdleTimeout{10};
-}
+}  // namespace
 
 std::atomic<bool> stop_requested{false};
 std::atomic<bool> receiver_failed{false};
@@ -93,11 +93,7 @@ int main() {
         std::ref(metrics_receiver),
         LineHandler(printMetricLine)
     );
-    std::jthread logs_thread(
-        receiverLoop,
-        std::ref(logs_receiver),
-        LineHandler(printLogLine)
-    );
+    std::jthread logs_thread(receiverLoop, std::ref(logs_receiver), LineHandler(printLogLine));
 
     while (!stop_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
