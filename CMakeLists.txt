@@ -75,6 +75,8 @@ add_library(
         src/storage/lmdb/Lmdb.h
         src/storage/NodeKeys.cpp
         src/storage/NodeKeys.h
+        src/storage/LmdbStore.cpp
+        src/storage/LmdbStore.h
 )
 target_include_directories(node_storage PUBLIC src)
 target_link_libraries(node_storage PUBLIC ${LMDB_TARGET} metric_protocol::metric_protocol)
@@ -95,7 +97,10 @@ if(MONITOR_BUILD_TESTS)
     FetchContent_MakeAvailable(googletest)
 
     enable_testing()
-    add_executable(monitor_tests test/NodeKeysTest.cpp)
+    add_executable(monitor_tests
+            test/NodeKeysTest.cpp
+            test/LmdbStoreTest.cpp
+    )
     target_link_libraries(monitor_tests PRIVATE node_storage GTest::gtest_main)
 
     include(GoogleTest)
