@@ -9,7 +9,7 @@
 #include <thread>
 
 #include "core/Logger.h"
-#include "ingest/LinePrinters.h"
+#include "ingest/NodeIngest.h"
 #include "metrics/FormatMetric.h"
 #include "metrics/MetricFactory.h"
 #include "network/TcpLineReceiver.h"
@@ -19,6 +19,7 @@ namespace {
 constexpr uint16_t kMetricsPort = 9002;
 constexpr uint16_t kLogsPort = 9003;
 constexpr std::chrono::seconds kMetricsIdleTimeout{10};
+constexpr const char* kNodeDataFile = "node_data.lmdb";
 }  // namespace
 
 std::atomic<bool> stop_requested{false};
@@ -71,6 +72,15 @@ int main() {
     std::signal(SIGINT, signalHandler);
     std::signal(SIGTERM, signalHandler);
 
+    std::optional<LmdbStore> store;
+    try {
+        store.emplace(kNodeDataFile);
+    } catch (const std::exception& e) {
+        log("FATAL (storage): " + std::string(e.what()));
+        return 1;
+    }
+    NodeIngest ingest(*store);
+
     TcpLineReceiver metrics_receiver(
         "metrics",
         {
@@ -93,9 +103,13 @@ int main() {
     std::jthread metric_thread(
         receiverLoop,
         std::ref(metrics_receiver),
-        LineHandler(printMetricLine)
+        LineHandler([&ingest](std::string_view line) { ingest.onMetricLine(line); })
     );
-    std::jthread logs_thread(receiverLoop, std::ref(logs_receiver), LineHandler(printLogLine));
+    std::jthread logs_thread(
+        receiverLoop,
+        std::ref(logs_receiver),
+        LineHandler([&ingest](std::string_view line) { ingest.onLogLine(line); })
+    );
 
     while (!stop_requested.load()) {
         std::this_thread::sleep_for(std::chrono::milliseconds(100));

@@ -50,8 +50,8 @@ add_executable(
         src/network/TcpLineReceiver.cpp
         src/network/UdpLineReceiver.cpp
         src/network/UdpLineReceiver.h
-        src/ingest/LinePrinters.cpp
-        src/ingest/LinePrinters.h
+        src/ingest/NodeIngest.cpp
+        src/ingest/NodeIngest.h
         src/storage/lmdb/Lmdb.cpp
         src/storage/lmdb/Lmdb.h
 )
