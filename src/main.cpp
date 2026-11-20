@@ -1,5 +1,5 @@
-#include <metric_protocol/MetricProtocol.h>
 #include <metric_protocol/LogProtocol.h>
+#include <metric_protocol/MetricProtocol.h>
 
 #include <atomic>
 #include <chrono>

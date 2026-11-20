@@ -14,6 +14,7 @@ public:
     [[nodiscard]] int code() const {
         return code_;
     }
+
 private:
     int code_;
 };

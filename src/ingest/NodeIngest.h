@@ -1,8 +1,8 @@
 #pragma once
 
-#include <string_view>
-
 #include <storage/LmdbStore.h>
+
+#include <string_view>
 
 // Lines from nodes: parse, store, print. One object for both ports; the receivers call it
 // from their own threads (LmdbStore is thread-safe, printing goes through log()).

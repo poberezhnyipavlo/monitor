@@ -33,7 +33,7 @@ const char* suffix(PutResult result) {
     return result == PutResult::kDuplicate ? " duplicate, skipped" : "";
 }
 
-} // namespace
+}  // namespace
 
 NodeIngest::NodeIngest(LmdbStore& store) : store_(store) {}
 
@@ -70,7 +70,7 @@ void NodeIngest::onLogLine(std::string_view line) {
         std::ostringstream out;
         out << "[logs] dev=" << record->dev << " boot=" << formatBoot(record->boot)
             << " seq=" << record->seq << " " << logproto::toString(record->level) << " "
-            <<  record->src << ": " << record->text << " (age " << record->age_ms << " ms)"
+            << record->src << ": " << record->text << " (age " << record->age_ms << " ms)"
             << suffix(result);
         log(out.str());
     } catch (const std::exception& e) {

@@ -52,8 +52,6 @@ add_executable(
         src/network/UdpLineReceiver.h
         src/ingest/NodeIngest.cpp
         src/ingest/NodeIngest.h
-        src/storage/lmdb/Lmdb.cpp
-        src/storage/lmdb/Lmdb.h
 )
 
 if(APPLE)

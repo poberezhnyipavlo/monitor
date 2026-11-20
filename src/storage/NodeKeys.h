@@ -12,7 +12,7 @@
 #include <string_view>
 
 namespace node_keys {
-inline constexpr  std::size_t kDevBytes = 6;
+inline constexpr std::size_t kDevBytes = 6;
 using DevBytes = std::array<uint8_t, kDevBytes>;
 
 // "20:9b:a9:61:15:6c" -> {0x20, 0x9b, ...}. nullopt unless metric::isValidDev(dev).
@@ -33,4 +33,4 @@ void appendBigEndian64(std::string& out, uint64_t value);
 
 // seriesPrefix(dev, name) | ts_ms(8).
 [[nodiscard]] std::string seriesKey(const DevBytes& dev, std::string_view name, uint64_t ts_ms);
-} // namespace node_keys
+}  // namespace node_keys

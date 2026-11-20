@@ -12,7 +12,7 @@
 
 enum class PutResult {
     kStored,
-    kDuplicate, // a line with the same dev|boot|seq is already stored: nothing written
+    kDuplicate,  // a line with the same dev|boot|seq is already stored: nothing written
 };
 
 struct SeriesPoint {

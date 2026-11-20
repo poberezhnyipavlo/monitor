@@ -75,7 +75,6 @@ void LmdbTxn::commit() {
     lmdbCheck(rc, "mdb_txn_commit");
 }
 
-
 LmdbCursor::LmdbCursor(const LmdbTxn& txn, MDB_dbi dbi) {
     lmdbCheck(mdb_cursor_open(txn.get(), dbi, &cursor_), "mdb_cursor_open");
 }
