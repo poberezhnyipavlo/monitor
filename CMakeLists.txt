@@ -7,6 +7,20 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(RRD REQUIRED IMPORTED_TARGET librrd)
 
+# LMDB: pkg-config if it knows the library, otherwise search for the header and the library
+# (Homebrew's lmdb may come without a pkg-config file).
+pkg_check_modules(LMDB QUIET IMPORTED_TARGET lmdb)
+if(LMDB_FOUND)
+    set(LMDB_TARGET PkgConfig::LMDB)
+else()
+    find_path(LMDB_INCLUDE_DIR lmdb.h PATHS /opt/homebrew/include /usr/local/include REQUIRED)
+    find_library(LMDB_LIBRARY lmdb PATHS /opt/homebrew/lib /usr/local/lib REQUIRED)
+    add_library(lmdb_found INTERFACE)
+    target_include_directories(lmdb_found INTERFACE ${LMDB_INCLUDE_DIR})
+    target_link_libraries(lmdb_found INTERFACE ${LMDB_LIBRARY})
+    set(LMDB_TARGET lmdb_found)
+endif()
+
 include(FetchContent)
 FetchContent_Declare(
         metric_protocol
@@ -38,6 +52,8 @@ add_executable(
         src/network/UdpLineReceiver.h
         src/ingest/LinePrinters.cpp
         src/ingest/LinePrinters.h
+        src/storage/lmdb/Lmdb.cpp
+        src/storage/lmdb/Lmdb.h
 )
 
 if(APPLE)
@@ -52,5 +68,14 @@ elseif(UNIX AND NOT APPLE)
     )
 endif()
 
+# Node data storage: a library, so the tests can link it without main.cpp.
+add_library(
+        node_storage STATIC
+        src/storage/lmdb/Lmdb.cpp
+        src/storage/lmdb/Lmdb.h
+)
+target_include_directories(node_storage PUBLIC src)
+target_link_libraries(node_storage PUBLIC ${LMDB_TARGET} metric_protocol::metric_protocol)
+
 target_include_directories(monitor PRIVATE src)
-target_link_libraries(monitor PRIVATE PkgConfig::RRD metric_protocol::metric_protocol)
+target_link_libraries(monitor PRIVATE PkgConfig::RRD node_storage)
