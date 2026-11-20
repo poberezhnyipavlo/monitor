@@ -73,9 +73,31 @@ add_library(
         node_storage STATIC
         src/storage/lmdb/Lmdb.cpp
         src/storage/lmdb/Lmdb.h
+        src/storage/NodeKeys.cpp
+        src/storage/NodeKeys.h
 )
 target_include_directories(node_storage PUBLIC src)
 target_link_libraries(node_storage PUBLIC ${LMDB_TARGET} metric_protocol::metric_protocol)
 
 target_include_directories(monitor PRIVATE src)
 target_link_libraries(monitor PRIVATE PkgConfig::RRD node_storage)
+
+option(MONITOR_BUILD_TESTS "Build monitor tests" ON)
+if(MONITOR_BUILD_TESTS)
+    FetchContent_Declare(
+            googletest
+            GIT_REPOSITORY https://github.com/google/googletest.git
+            GIT_TAG v1.17.0
+            GIT_SHALLOW TRUE
+    )
+    set(INSTALL_GTEST OFF CACHE BOOL "" FORCE)
+    set(BUILD_GMOCK OFF CACHE BOOL "" FORCE)
+    FetchContent_MakeAvailable(googletest)
+
+    enable_testing()
+    add_executable(monitor_tests test/NodeKeysTest.cpp)
+    target_link_libraries(monitor_tests PRIVATE node_storage GTest::gtest_main)
+
+    include(GoogleTest)
+    gtest_discover_tests(monitor_tests)
+endif()

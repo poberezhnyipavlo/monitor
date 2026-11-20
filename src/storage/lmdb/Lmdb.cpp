@@ -12,7 +12,7 @@ void lmdbCheck(int rc, const std::string& what) {
 }
 
 MDB_val toVal(std::string_view bytes) {
-    return MDB_val{.mv_size = bytes.size(), .mv_data = static_cast<char*>(bytes.size())};
+    return MDB_val{.mv_size = bytes.size(), .mv_data = const_cast<char*>(bytes.data())};
 }
 
 std::string_view fromVal(const MDB_val& val) {
