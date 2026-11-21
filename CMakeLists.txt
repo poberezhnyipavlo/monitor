@@ -89,6 +89,8 @@ add_executable(
         src/ingest/NodeIngest.h
         src/storage/RrdSeriesStore.cpp
         src/storage/RrdSeriesStore.h
+        src/api/MonitorService.cpp
+        src/api/MonitorService.h
 )
 
 if(APPLE)
@@ -118,7 +120,7 @@ target_include_directories(node_storage PUBLIC src)
 target_link_libraries(node_storage PUBLIC ${LMDB_TARGET} metric_protocol::metric_protocol)
 
 target_include_directories(monitor PRIVATE src)
-target_link_libraries(monitor PRIVATE PkgConfig::RRD node_storage)
+target_link_libraries(monitor PRIVATE PkgConfig::RRD node_storage monitor_proto gRPC::grpc++_reflection)
 
 option(MONITOR_BUILD_TESTS "Build monitor tests" ON)
 if(MONITOR_BUILD_TESTS)

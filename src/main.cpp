@@ -1,3 +1,5 @@
+#include <grpcpp/ext/proto_server_reflection_plugin.h>
+#include <grpc/grpc.h>
 #include <metric_protocol/LogProtocol.h>
 #include <metric_protocol/MetricProtocol.h>
 
@@ -5,14 +7,18 @@
 #include <chrono>
 #include <csignal>
 #include <iomanip>
+#include <memory>
 #include <sstream>
 #include <thread>
 
+#include "api/MonitorService.h"
 #include "core/Logger.h"
 #include "ingest/NodeIngest.h"
 #include "metrics/FormatMetric.h"
 #include "metrics/MetricFactory.h"
 #include "network/TcpLineReceiver.h"
+#include "storage/LmdbStore.h"
+#include "storage/RrdSeriesStore.h"
 #include "storage/SystemMetricStorage.h"
 
 namespace {
@@ -20,6 +26,9 @@ constexpr uint16_t kMetricsPort = 9002;
 constexpr uint16_t kLogsPort = 9003;
 constexpr std::chrono::seconds kMetricsIdleTimeout{10};
 constexpr const char* kNodeDataFile = "node_data.lmdb";
+constexpr const char* kSystemMetricsFile = "system_metrics.rrd";
+// Only this computer: the API has no authentication (README).
+constexpr const char* kApiAddress = "127.0.0.1:50051";
 }  // namespace
 
 std::atomic<bool> stop_requested{false};
@@ -32,7 +41,7 @@ void signalHandler(int) {
 void monitoringLoop(std::stop_token token) {
     try {
         const auto metric = MetricFactory::make();
-        SystemMetricStorage storage("system_metrics.rrd");
+        SystemMetricStorage storage(kSystemMetricsFile);
 
         while (!token.stop_requested()) {
             auto now = std::chrono::system_clock::now();
@@ -81,6 +90,20 @@ int main() {
     }
     NodeIngest ingest(*store);
 
+    RrdSeriesStore host_store(kSystemMetricsFile);
+    MonitorService api(*store, host_store);
+    // Reflection: grpcurl/Postman can list the API without the .proto file.
+    grpc::reflection::InitProtoReflectionServerBuilderPlugin();
+    grpc::ServerBuilder builder;
+    builder.AddListeningPort(kApiAddress, grpc::InsecureServerCredentials());
+    builder.RegisterService(&api);
+    const std::unique_ptr<grpc::Server> api_server = builder.BuildAndStart();
+    if (!api_server) {
+        log(std::string("FATAL (api): cannot listen on  ") + kApiAddress);
+        return 1;
+    }
+    log(std::string("[api] gRPC on ") + kApiAddress);
+
     TcpLineReceiver metrics_receiver(
         "metrics",
         {
@@ -116,6 +139,9 @@ int main() {
     }
 
     log("Stopping");
+
+    // Calls in progress get up to 1 s to finish, then are cancelled.
+    api_server->Shutdown(std::chrono::system_clock::now() + std::chrono::seconds(1));
 
     monitoring_thread.request_stop();
     metric_thread.request_stop();
