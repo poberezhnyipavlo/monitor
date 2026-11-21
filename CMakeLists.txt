@@ -87,6 +87,8 @@ add_executable(
         src/network/UdpLineReceiver.h
         src/ingest/NodeIngest.cpp
         src/ingest/NodeIngest.h
+        src/storage/RrdSeriesStore.cpp
+        src/storage/RrdSeriesStore.h
 )
 
 if(APPLE)
@@ -110,6 +112,7 @@ add_library(
         src/storage/NodeKeys.h
         src/storage/LmdbStore.cpp
         src/storage/LmdbStore.h
+        src/storage/ISeriesStore.h
 )
 target_include_directories(node_storage PUBLIC src)
 target_link_libraries(node_storage PUBLIC ${LMDB_TARGET} metric_protocol::metric_protocol)
