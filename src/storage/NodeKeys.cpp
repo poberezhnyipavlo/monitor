@@ -75,3 +75,10 @@ std::string node_keys::seriesKey(const DevBytes& dev, std::string_view name, uin
 
     return key;
 }
+
+std::string node_keys::seriesEnd(const DevBytes& dev, std::string_view name) {
+    std::string key = seriesPrefix(dev, name);
+    key.back() = '\x01';
+
+    return key;
+}

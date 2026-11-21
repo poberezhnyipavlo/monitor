@@ -82,3 +82,11 @@ TEST(NodeKeys, NameIsTerminated) {
     const std::string temp = node_keys::seriesPrefix(kDev, "temp");
     EXPECT_FALSE(node_keys::seriesKey(kDev, "temp_alert", 1).starts_with(temp));
 }
+
+// seriesEnd is right after every key of the series and before the next series of the device.
+TEST(NodeKeys, SeriesEndSkipsWholeSeries) {
+    const std::string end = node_keys::seriesEnd(kDev, "temp");
+    EXPECT_LT(node_keys::seriesKey(kDev, "temp", UINT64_MAX), end);
+    EXPECT_LT(end, node_keys::seriesKey(kDev, "temp_alert", 0));
+    EXPECT_LT(end, node_keys::seriesKey(kDev, "tempa", 0));
+}

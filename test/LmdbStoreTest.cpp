@@ -134,3 +134,23 @@ TEST_F(LmdbStoreTest, InvalidDevThrows) {
         std::invalid_argument
     );
 }
+
+TEST_F(LmdbStoreTest, ListsEachSeriesOnce) {
+    LmdbStore store(file_, kTestMapSize);
+    store.putMetric(metricLine("temp", 1, 0), 1000);
+    store.putMetric(metricLine("temp", 2, 1), 2000);
+    store.putMetric(metricLine("temp_alert", 0, 2), 1000);
+    store.putMetric(metric::Message{kOtherDev, 1, 0, 0, "temp", 9}, 1000);
+
+    const std::vector<SeriesId> expected = {
+        {.device = std::string(kDev), .name = "temp"},
+        {.device = std::string(kDev), .name = "temp_alert"},
+        {.device = std::string(kOtherDev), .name = "temp"},
+    };
+    EXPECT_EQ(store.listSeries(), expected);
+}
+
+TEST_F(LmdbStoreTest, ListOfEmptyStoreIsEmpty) {
+    LmdbStore store(file_, kTestMapSize);
+    EXPECT_TRUE(store.listSeries().empty());
+}

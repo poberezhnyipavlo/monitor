@@ -9,15 +9,11 @@
 #include <vector>
 
 #include "lmdb/Lmdb.h"
+#include "ISeriesStore.h"
 
 enum class PutResult {
     kStored,
     kDuplicate,  // a line with the same dev|boot|seq is already stored: nothing written
-};
-
-struct SeriesPoint {
-    uint64_t ts_ms;
-    double value;
 };
 
 // Data from nodes in one LMDB file, three tables:
@@ -26,7 +22,7 @@ struct SeriesPoint {
 //   logs:    dev|boot|seq          -> ts_ms|level|src|0x00|text
 // samples and series are written in one transaction: both or neither.
 // Safe to call from several threads: LMDB runs one write transaction at a time.
-class LmdbStore {
+class LmdbStore : public ISeriesStore {
 public:
     // map_size: the most the file may grow to (address space is reserved, disk is used as data
     // grows).
@@ -39,13 +35,16 @@ public:
     PutResult putMetric(const metric::Message& message, uint64_t ts_ms);
     PutResult putLog(const logproto::Record& record, uint64_t ts_ms);
 
+    [[nodiscard]] std::vector<SeriesId> listSeries() const override;
+
     // Points of one series with from_ms <= ts_ms <= to_ms, oldest first.
+    // Throws std::invalid_argument if dev is not a MAC like "20:9b:a9:61:15:6c".
     [[nodiscard]] std::vector<SeriesPoint> series(
         std::string_view dev,
         std::string_view name,
         uint64_t from_ms,
         uint64_t to_ms
-    ) const;
+    ) const override;
 
     static constexpr std::size_t kDefaultMapSize = std::size_t{1} << 30U;  // 1 GiB
 private:

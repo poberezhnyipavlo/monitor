@@ -1,0 +1,39 @@
+syntax = "proto3";
+
+package monitor.v1;
+
+// Read-only access to the stored time series: node metrics (LMDB) and this computer's CPU/RAM (RRD).
+service MonitorService {
+    // Every series that has at least one point.
+    rpc ListSeries(ListSeriesRequest) returns (ListSeriesResponse);
+
+    // Points of one series in [from_ms, to_ms], oldest first.
+    rpc GetSeries(GetSeriesRequest) returns (GetSeriesResponse);
+}
+
+// device: a node MAC ("20:9b:a9:61:15:6c") or "host" for the computer the monitor runs on.
+message SeriesId {
+    string device = 1;
+    string name = 2;
+}
+
+message ListSeriesRequest {}
+
+message ListSeriesResponse {
+    repeated SeriesId series = 1;
+}
+
+message GetSeriesRequest {
+    SeriesId id = 1;
+    uint64 from_ms = 2; // ms since the Unix epoch
+    uint64 to_ms = 3; // 0 = now
+}
+
+message Point {
+    uint64 ts_ms = 1;
+    double value = 2;
+}
+
+message GetSeriesResponse {
+    repeated Point points = 1;
+}

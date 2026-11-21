@@ -31,6 +31,10 @@ void appendBigEndian64(std::string& out, uint64_t value);
 // "temp" never includes "temp_alert" (names are [a-z0-9_], 0x00 is never part of them).
 [[nodiscard]] std::string seriesPrefix(const DevBytes& dev, std::string_view name);
 
+// The first key after every key of the series: seriesPrefix with its last byte 0x00 -> 0x01.
+// Seeking here skips the whole series ("temp\x01" is still before "temp_alert": 0x01 < '_').
+[[nodiscard]] std::string seriesEnd(const DevBytes& dev, std::string_view name);
+
 // seriesPrefix(dev, name) | ts_ms(8).
 [[nodiscard]] std::string seriesKey(const DevBytes& dev, std::string_view name, uint64_t ts_ms);
 }  // namespace node_keys

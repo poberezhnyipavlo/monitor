@@ -30,6 +30,41 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(metric_protocol)
 
+# gRPC + protobuf: brew install grpc (Mac) / libgrpc++-dev protobuf-compiler-grpc (Ubuntu).
+# protobuf: its own CMake config if installed (Homebrew), otherwise CMake's FindProtobuf (Ubuntu).
+find_package(Protobuf CONFIG QUIET)
+if(NOT Protobuf_FOUND)
+    find_package(Protobuf REQUIRED)
+endif()
+find_package(gRPC CONFIG REQUIRED)
+
+# monitor.proto -> C++ code in build/generated: monitor.pb.{h,cc} (messages, protoc) and
+# monitor.grpc.pb.{h,cc} (service, the gRPC plugin). Regenerated when the .proto changes.
+set(PROTO_DIR ${CMAKE_CURRENT_SOURCE_DIR}/proto)
+set(PROTO_FILE ${PROTO_DIR}/monitor/v1/monitor.proto)
+set(GENERATED_DIR ${CMAKE_CURRENT_BINARY_DIR}/generated)
+set(GENERATED_FILES
+        ${GENERATED_DIR}/monitor/v1/monitor.pb.cc
+        ${GENERATED_DIR}/monitor/v1/monitor.pb.h
+        ${GENERATED_DIR}/monitor/v1/monitor.grpc.pb.cc
+        ${GENERATED_DIR}/monitor/v1/monitor.grpc.pb.h
+)
+add_custom_command(
+        OUTPUT ${GENERATED_FILES}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${GENERATED_DIR}
+        COMMAND protobuf::protoc
+        --proto_path=${PROTO_DIR}
+        --cpp_out=${GENERATED_DIR}
+        --grpc_out=${GENERATED_DIR}
+        --plugin=protoc-gen-grpc=$<TARGET_FILE:gRPC::grpc_cpp_plugin>
+        ${PROTO_FILE}
+        DEPENDS ${PROTO_FILE}
+        COMMENT "protoc: monitor.proto"
+)
+add_library(monitor_proto STATIC ${GENERATED_FILES})
+target_include_directories(monitor_proto PUBLIC ${GENERATED_DIR})
+target_link_libraries(monitor_proto PUBLIC protobuf::libprotobuf gRPC::grpc++)
+
 add_executable(
         monitor src/main.cpp
         src/metrics/ISystemMetrics.h

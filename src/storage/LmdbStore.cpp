@@ -135,3 +135,37 @@ std::vector<SeriesPoint> LmdbStore::series(
     }
     return points;
 }
+
+std::vector<SeriesId> LmdbStore::listSeries() const {
+    LmdbTxn txn(env_, LmdbTxn::Mode::kRead);
+    LmdbCursor cursor(txn, series_);
+
+    MDB_val key{};
+    MDB_val value{};
+
+    int rc = mdb_cursor_get(cursor.get(), &key, &value, MDB_FIRST);
+
+    std::vector<SeriesId> series;
+    while (rc == MDB_SUCCESS) {
+        std::string_view k = fromVal(key);
+
+        node_keys::DevBytes dev{};
+        std::copy_n(k.begin(), node_keys::kDevBytes, dev.begin());
+
+        std::size_t name_end = k.find('\0', node_keys::kDevBytes);
+        const std::string_view name =
+            k.substr(node_keys::kDevBytes, name_end - node_keys::kDevBytes);
+
+        series.push_back({.device = metric::formatDev(dev).data(), .name = std::string(name)});
+
+        const std::string next = node_keys::seriesEnd(dev, name);
+        key = toVal(next);
+        rc = mdb_cursor_get(cursor.get(), &key, &value, MDB_SET_RANGE);
+    }
+
+    if (rc != MDB_NOTFOUND) {
+        lmdbCheck(rc, "mdb_cursor_get");
+    }
+
+    return series;
+}
