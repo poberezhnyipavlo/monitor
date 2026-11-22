@@ -1,5 +1,5 @@
-#include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <grpc/grpc.h>
+#include <grpcpp/ext/proto_server_reflection_plugin.h>
 #include <metric_protocol/LogProtocol.h>
 #include <metric_protocol/MetricProtocol.h>
 
@@ -88,10 +88,11 @@ int main() {
         log("FATAL (storage): " + std::string(e.what()));
         return 1;
     }
-    NodeIngest ingest(*store);
+    LiveFeed live_feed;
+    NodeIngest ingest(*store, live_feed);
 
     RrdSeriesStore host_store(kSystemMetricsFile);
-    MonitorService api(*store, host_store);
+    MonitorService api(*store, host_store, live_feed);
     // Reflection: grpcurl/Postman can list the API without the .proto file.
     grpc::reflection::InitProtoReflectionServerBuilderPlugin();
     grpc::ServerBuilder builder;
@@ -140,6 +141,8 @@ int main() {
 
     log("Stopping");
 
+    // Wake the WatchLatest streams first: a stream waiting for points would hold Shutdown back.
+    live_feed.close();
     // Calls in progress get up to 1 s to finish, then are cancelled.
     api_server->Shutdown(std::chrono::system_clock::now() + std::chrono::seconds(1));
 

@@ -8,8 +8,8 @@
 #include <string_view>
 #include <vector>
 
-#include "lmdb/Lmdb.h"
 #include "ISeriesStore.h"
+#include "lmdb/Lmdb.h"
 
 enum class PutResult {
     kStored,

@@ -35,7 +35,7 @@ const char* suffix(PutResult result) {
 
 }  // namespace
 
-NodeIngest::NodeIngest(LmdbStore& store) : store_(store) {}
+NodeIngest::NodeIngest(LmdbStore& store, LiveFeed& feed) : store_(store), feed_(feed) {}
 
 void NodeIngest::onMetricLine(std::string_view line) {
     const auto message = metric::parse(line);
@@ -45,8 +45,14 @@ void NodeIngest::onMetricLine(std::string_view line) {
     }
 
     try {
+        const uint64_t ts_ms = sampleTimeMs(message->age_ms);
         const PutResult result = store_.putMetric(*message, sampleTimeMs(message->age_ms));
-
+        if (result == PutResult::kStored) {
+            feed_.publish({
+                .id = {.device = std::string(message->dev), .name = std::string(message->name)},
+                .point = {.ts_ms = ts_ms, .value = message->value},
+            });
+        }
         std::ostringstream out;
         out << "[metrics] dev=" << message->dev << " boot=" << formatBoot(message->boot)
             << " seq=" << message->seq << " " << message->name << "=" << message->value << " (age "

@@ -14,7 +14,7 @@
 
 namespace {
 
-constexpr std::array<std::string_view, 2> kNames = {"cpu", "memory"}; // DS names in the RRD file
+constexpr std::array<std::string_view, 2> kNames = {"cpu", "memory"};  // DS names in the RRD file
 constexpr uint64_t kMsPerSecond = 1000;
 
 // What rrd_fetch_r allocates with malloc; freed in the destructor.
@@ -104,7 +104,7 @@ std::vector<SeriesPoint> RrdSeriesStore::series(
         const double value = result.data[(row * result.ds_count) + column];
         const auto ts_ms = (static_cast<uint64_t>(start) + ((row + 1) * step)) * kMsPerSecond;
         if (std::isnan(value) || ts_ms < from_ms || ts_ms > to_ms) {
-            continue; // NaN: no sample in that step
+            continue;  // NaN: no sample in that step
         }
         points.push_back({.ts_ms = ts_ms, .value = value});
     }

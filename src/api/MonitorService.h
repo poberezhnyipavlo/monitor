@@ -2,6 +2,7 @@
 
 #include <grpcpp/grpcpp.h>
 
+#include "LiveFeed.h"
 #include "monitor/v1/monitor.grpc.pb.h"
 #include "storage/ISeriesStore.h"
 
@@ -10,7 +11,7 @@
 // Series of device "host" come from `host`, every other device from `nodes`.
 class MonitorService final : public monitor::v1::MonitorService::Service {
 public:
-    MonitorService(const ISeriesStore& nodes, const ISeriesStore& host);
+    MonitorService(const ISeriesStore& nodes, const ISeriesStore& host, LiveFeed& feed);
 
     grpc::Status ListSeries(
         grpc::ServerContext* context,
@@ -24,9 +25,16 @@ public:
         monitor::v1::GetSeriesResponse* response
     ) override;
 
+    grpc::Status WatchLatest(
+        grpc::ServerContext* context,
+        const monitor::v1::WatchLatestRequest* request,
+        grpc::ServerWriter<monitor::v1::LivePoint>* writer
+    ) override;
+
 private:
     [[nodiscard]] const ISeriesStore& storeFor(std::string_view device) const;
 
     const ISeriesStore& nodes_;
     const ISeriesStore& host_;
+    LiveFeed& feed_;
 };

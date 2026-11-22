@@ -9,6 +9,10 @@ service MonitorService {
 
     // Points of one series in [from_ms, to_ms], oldest first.
     rpc GetSeries(GetSeriesRequest) returns (GetSeriesResponse);
+
+    // New node points as they arrive, until the client cancels. Only points stored after the call
+    // started; a client that falls far behind skips the oldest ones.
+    rpc WatchLatest(WatchLatestRequest) returns (stream LivePoint);
 }
 
 // device: a node MAC ("20:9b:a9:61:15:6c") or "host" for the computer the monitor runs on.
@@ -36,4 +40,14 @@ message Point {
 
 message GetSeriesResponse {
     repeated Point points = 1;
+}
+
+// Empty device or name: any.
+message WatchLatestRequest {
+    SeriesId id = 1;
+}
+
+message LivePoint {
+    SeriesId id = 1;
+    Point point = 2;
 }

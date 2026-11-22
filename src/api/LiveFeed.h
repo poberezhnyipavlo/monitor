@@ -44,7 +44,7 @@ public:
 private:
     mutable std::mutex mutex_;
     std::condition_variable changed_;
-    std::deque<LivePoint> recent_; // points last_number_ - size() + 1 ... last_number_
+    std::deque<LivePoint> recent_;  // points last_number_ - size() + 1 ... last_number_
     uint64_t last_number_ = 0;
     bool closed_ = false;
 };
