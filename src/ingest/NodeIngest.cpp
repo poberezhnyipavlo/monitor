@@ -46,7 +46,7 @@ void NodeIngest::onMetricLine(std::string_view line) {
 
     try {
         const uint64_t ts_ms = sampleTimeMs(message->age_ms);
-        const PutResult result = store_.putMetric(*message, sampleTimeMs(message->age_ms));
+        const PutResult result = store_.putMetric(*message, ts_ms);
         if (result == PutResult::kStored) {
             feed_.publish({
                 .id = {.device = std::string(message->dev), .name = std::string(message->name)},
