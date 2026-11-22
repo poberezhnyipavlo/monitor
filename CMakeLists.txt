@@ -91,6 +91,8 @@ add_executable(
         src/storage/RrdSeriesStore.h
         src/api/MonitorService.cpp
         src/api/MonitorService.h
+        src/api/LiveFeed.cpp
+        src/api/LiveFeed.h
 )
 
 if(APPLE)
@@ -138,6 +140,8 @@ if(MONITOR_BUILD_TESTS)
     add_executable(monitor_tests
             test/NodeKeysTest.cpp
             test/LmdbStoreTest.cpp
+            test/LiveFeedTest.cpp
+            src/api/LiveFeed.cpp
     )
     target_link_libraries(monitor_tests PRIVATE node_storage GTest::gtest_main)
 

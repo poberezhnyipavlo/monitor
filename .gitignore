@@ -1,8 +1,9 @@
 .idea
 
-build/
+build*/
 cmake-build-*/
 build-linux/
 build-macos/
 
 system_metrics.rrd
+node_data.lmdb*
