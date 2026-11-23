@@ -25,7 +25,7 @@ include(FetchContent)
 FetchContent_Declare(
         metric_protocol
         GIT_REPOSITORY https://github.com/poberezhnyipavlo/metric-protocol.git
-        GIT_TAG v3.0.0
+        GIT_TAG v3.1.0
         GIT_SHALLOW TRUE
 )
 FetchContent_MakeAvailable(metric_protocol)
@@ -37,6 +37,7 @@ if(NOT Protobuf_FOUND)
     find_package(Protobuf REQUIRED)
 endif()
 find_package(gRPC CONFIG REQUIRED)
+find_package(OpenSSL REQUIRED)
 
 # monitor.proto -> C++ code in build/generated: monitor.pb.{h,cc} (messages, protoc) and
 # monitor.grpc.pb.{h,cc} (service, the gRPC plugin). Regenerated when the .proto changes.
@@ -93,6 +94,8 @@ add_executable(
         src/api/MonitorService.h
         src/api/LiveFeed.cpp
         src/api/LiveFeed.h
+        src/security/HmacSha256.cpp
+        src/security/HmacSha256.h
 )
 
 if(APPLE)
@@ -122,7 +125,7 @@ target_include_directories(node_storage PUBLIC src)
 target_link_libraries(node_storage PUBLIC ${LMDB_TARGET} metric_protocol::metric_protocol)
 
 target_include_directories(monitor PRIVATE src)
-target_link_libraries(monitor PRIVATE PkgConfig::RRD node_storage monitor_proto gRPC::grpc++_reflection)
+target_link_libraries(monitor PRIVATE PkgConfig::RRD node_storage monitor_proto gRPC::grpc++_reflection OpenSSL::Crypto)
 
 option(MONITOR_BUILD_TESTS "Build monitor tests" ON)
 if(MONITOR_BUILD_TESTS)
@@ -142,8 +145,11 @@ if(MONITOR_BUILD_TESTS)
             test/LmdbStoreTest.cpp
             test/LiveFeedTest.cpp
             src/api/LiveFeed.cpp
+            test/HmacSha256Test.cpp
+            src/security/HmacSha256.cpp
+            src/security/HmacSha256.h
     )
-    target_link_libraries(monitor_tests PRIVATE node_storage GTest::gtest_main)
+    target_link_libraries(monitor_tests PRIVATE node_storage GTest::gtest_main OpenSSL::Crypto)
 
     include(GoogleTest)
     gtest_discover_tests(monitor_tests)
