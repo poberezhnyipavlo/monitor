@@ -4,9 +4,20 @@
 
 #include <sstream>
 #include <vector>
+#include <type_traits>
 
 #include "RrdMutex.h"
 #include "StorageExceptions.h"
+
+namespace {
+
+// librrd's rrd_update/rrd_create take `char**` in older versions (1.7.2 on Ubuntu 24.04) and
+// `const char**` in newer ones (1.11 in Homebrew). Neither changes the strings, so we keep
+// `const char*` and cast to whatever the installed header declares.
+template <typename Fn>
+using RrdArgv =
+    std::conditional_t<std::is_invocable_v<Fn, int, const char**>, const char**, char**>;
+}  // namespace
 
 std::string SystemMetricStorage::getPath() const {
     return this->system_metrics_path_;
@@ -34,7 +45,10 @@ void SystemMetricStorage::save(double cpu, double memory) {
     optind = 0;
     rrd_clear_error();
 
-    const int result = rrd_update(static_cast<int>(argv.size()), argv.data());
+    const int result = rrd_update(
+        static_cast<int>(argv.size()),
+        const_cast<RrdArgv<decltype(&rrd_update)>>(argv.data())
+    );
 
     if (result != 0) {
         throw StorageException("Failed to update system metrics");
@@ -65,7 +79,10 @@ void SystemMetricStorage::createFile() const {
 
     optind = 0;
     rrd_clear_error();
-    const int result = rrd_create(static_cast<int>(argv.size()), argv.data());
+    const int result = rrd_create(
+        static_cast<int>(argv.size()),
+        const_cast<RrdArgv<decltype(&rrd_create)>>(argv.data())
+    );
 
     if (result != 0) {
         throw StorageException("Failed to create RRD file: " + std::string(rrd_get_error()));
