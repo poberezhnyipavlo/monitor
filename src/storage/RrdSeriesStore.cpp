@@ -89,6 +89,11 @@ std::vector<SeriesPoint> RrdSeriesStore::series(
             &result.data
         );
         if (rc != 0) {
+            // On failure the outputs are not ours to free: librrd 1.7 leaves ds_names pointing to
+            // memory it has already released, and ~FetchResult would free it again.
+            result.ds_names = nullptr;
+            result.ds_count = 0;
+            result.data = nullptr;
             throw StorageException("rrd_fetch " + path_ + ": " + rrd_get_error());
         }
     }
