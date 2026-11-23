@@ -1,5 +1,6 @@
 #include "LmdbStore.h"
 
+#include <algorithm>
 #include <cstring>
 #include <stdexcept>
 #include <string>
