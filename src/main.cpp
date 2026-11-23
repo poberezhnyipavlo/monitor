@@ -29,6 +29,7 @@ constexpr const char* kNodeDataFile = "node_data.lmdb";
 constexpr const char* kSystemMetricsFile = "system_metrics.rrd";
 // Only this computer: the API has no authentication (README).
 constexpr const char* kApiAddress = "127.0.0.1:50051";
+constexpr const char* kHmacKeyEnv = "MONITOR_HMAC_KEY";
 }  // namespace
 
 std::atomic<bool> stop_requested{false};
@@ -88,8 +89,19 @@ int main() {
         log("FATAL (storage): " + std::string(e.what()));
         return 1;
     }
+
+    // Shared key: 64 hex digits, the same as kHmacKeyHex in the node's secrets.h. From the
+    // environment, so it is never in the repository (`openssl rand -hex 32`).
+    const char* key_hex = std::getenv(kHmacKeyEnv);
+    const auto key = sig::parseKey(key_hex == nullptr ? "" : key_hex);
+    if (!key) {
+        log(std::string("FATAL (hmac): set ") + kHmacKeyEnv + "to 64 lowercase hex digits");
+        return 1;
+    }
+    const HmacSha256 hmac(*key);
+
     LiveFeed live_feed;
-    NodeIngest ingest(*store, live_feed);
+    NodeIngest ingest(*store, live_feed, hmac);
 
     RrdSeriesStore host_store(kSystemMetricsFile);
     MonitorService api(*store, host_store, live_feed);

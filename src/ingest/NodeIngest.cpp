@@ -11,6 +11,7 @@
 #include <string>
 
 #include "core/Logger.h"
+#include "security/HmacSha256.h"
 
 namespace {
 
@@ -33,14 +34,30 @@ const char* suffix(PutResult result) {
     return result == PutResult::kDuplicate ? " duplicate, skipped" : "";
 }
 
+std::string printable(std::string_view line) {
+    std::string out;
+    out.reserve(line.size());
+    for (const auto& c : line) {
+        const auto byte = static_cast<unsigned char>(c);
+        out += (byte >= 0x20 && byte < 0x7f) ? c : '?';
+    }
+
+    return out;
+}
+
 }  // namespace
 
-NodeIngest::NodeIngest(LmdbStore& store, LiveFeed& feed) : store_(store), feed_(feed) {}
+NodeIngest::NodeIngest(LmdbStore& store, LiveFeed& feed, const HmacSha256& hmac)
+    : store_(store), feed_(feed), hmac_(hmac) {}
 
 void NodeIngest::onMetricLine(std::string_view line) {
-    const auto message = metric::parse(line);
+    const auto payload = verified(line, "metrics");
+    if (!payload) {
+        return;
+    }
+    const auto message = metric::parse(*payload);
     if (!message) {
-        log("[metrics] rejected: " + std::string(line));
+        log("[metrics] rejected: " + std::string(*payload));
         return;
     }
 
@@ -64,9 +81,13 @@ void NodeIngest::onMetricLine(std::string_view line) {
 }
 
 void NodeIngest::onLogLine(std::string_view line) {
-    const auto record = logproto::parse(line);
+    const auto payload = verified(line, "log");
+    if (!payload) {
+        return;
+    }
+    const auto record = logproto::parse(*payload);
     if (!record) {
-        log("[metrics] rejected: " + std::string(line));
+        log("[metrics] rejected: " + std::string(*payload));
         return;
     }
 
@@ -82,4 +103,23 @@ void NodeIngest::onLogLine(std::string_view line) {
     } catch (const std::exception& e) {
         log("[metrics] not stored: " + std::string(e.what()));
     }
+}
+
+std::optional<std::string_view> NodeIngest::verified(
+    std::string_view line,
+    std::string_view channel
+) {
+    const CheckedLine checked = checkLine(line, hmac_);
+    switch (checked.result) {
+        case LineCheck::kOk:
+            return checked.payload;
+        case LineCheck::kUnsigned:
+            log("[" + std::string(channel) + "] rejected, unsigned: " + printable(line));
+            return std::nullopt;
+        case LineCheck::kBadSignature:
+            log("[" + std::string(channel) + "] rejected, bad signature" + printable(line));
+            return std::nullopt;
+    }
+
+    return std::nullopt;
 }
