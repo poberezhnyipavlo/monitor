@@ -81,13 +81,13 @@ void NodeIngest::onMetricLine(std::string_view line) {
 }
 
 void NodeIngest::onLogLine(std::string_view line) {
-    const auto payload = verified(line, "log");
+    const auto payload = verified(line, "logs");
     if (!payload) {
         return;
     }
     const auto record = logproto::parse(*payload);
     if (!record) {
-        log("[metrics] rejected: " + std::string(*payload));
+        log("[logs] rejected: " + std::string(*payload));
         return;
     }
 
@@ -101,7 +101,7 @@ void NodeIngest::onLogLine(std::string_view line) {
             << suffix(result);
         log(out.str());
     } catch (const std::exception& e) {
-        log("[metrics] not stored: " + std::string(e.what()));
+        log("[logs] not stored: " + std::string(e.what()));
     }
 }
 
