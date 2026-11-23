@@ -95,7 +95,7 @@ int main() {
     const char* key_hex = std::getenv(kHmacKeyEnv);
     const auto key = sig::parseKey(key_hex == nullptr ? "" : key_hex);
     if (!key) {
-        log(std::string("FATAL (hmac): set ") + kHmacKeyEnv + "to 64 lowercase hex digits");
+        log(std::string("FATAL (hmac): set ") + kHmacKeyEnv + " to 64 lowercase hex digits");
         return 1;
     }
     const HmacSha256 hmac(*key);
