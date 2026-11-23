@@ -1,0 +1,6 @@
+.git
+.idea
+build*/
+cmake-build-*/
+node_data.lmdb*
+system_metrics.rrd

@@ -3,5 +3,14 @@ services:
     build: .
     volumes:
       - .:/app
+      - monitor-data:/data
+    ports:
+      - "9002:9002"
+      - "9003:9003"
+    environment:
+      - MONITOR_HMAC_KEY
     stdin_open: true
     tty: true
+
+volumes:
+  monitor-data:
