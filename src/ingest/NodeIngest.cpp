@@ -117,7 +117,7 @@ std::optional<std::string_view> NodeIngest::verified(
             log("[" + std::string(channel) + "] rejected, unsigned: " + printable(line));
             return std::nullopt;
         case LineCheck::kBadSignature:
-            log("[" + std::string(channel) + "] rejected, bad signature" + printable(line));
+            log("[" + std::string(channel) + "] rejected, bad signature: " + printable(line));
             return std::nullopt;
     }
 
