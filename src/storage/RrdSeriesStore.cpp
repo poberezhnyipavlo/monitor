@@ -69,6 +69,15 @@ std::vector<SeriesPoint> RrdSeriesStore::series(
         // The monitoring thread writes the same file with rrd_update.
         std::lock_guard<std::mutex> lock(rrdMutex());
         rrd_clear_error();
+
+        // RRD keeps only its last window (100 s); asking from 1970 makes librrd 1.7 try to allocate
+        // rows for 56 years at a 1 s step and fail ("malloc fetch data area").
+        const time_t first = rrd_first_r(path_.c_str(), 0);
+
+        if (first > start) {
+            start = first;
+        }
+
         const int rc = rrd_fetch_r(
             path_.c_str(),
             "AVERAGE",
