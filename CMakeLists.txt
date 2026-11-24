@@ -79,7 +79,6 @@ add_executable(
         src/storage/SystemMetricStorage.h
         src/storage/RrdMutex.h
         src/storage/StorageExceptions.h
-        src/storage/BaseRrdStorage.h
         src/network/ILineReceiver.h
         src/network/LineSplitter.cpp
         src/network/TcpLineReceiver.h

@@ -20,6 +20,7 @@
 #include "storage/LmdbStore.h"
 #include "storage/RrdSeriesStore.h"
 #include "storage/SystemMetricStorage.h"
+#include "storage/StorageExceptions.h"
 
 namespace {
 constexpr uint16_t kMetricsPort = 9002;

@@ -1,10 +1,16 @@
 #include "SystemMetricStorage.h"
 
 #include <rrd.h>
+#include <unistd.h>
 
+#include <cerrno>
+#include <filesystem>
+#include <fstream>
+#include <mutex>
 #include <sstream>
-#include <vector>
+#include <string>
 #include <type_traits>
+#include <vector>
 
 #include "RrdMutex.h"
 #include "StorageExceptions.h"
@@ -18,10 +24,6 @@ template <typename Fn>
 using RrdArgv =
     std::conditional_t<std::is_invocable_v<Fn, int, const char**>, const char**, char**>;
 }  // namespace
-
-std::string SystemMetricStorage::getPath() const {
-    return this->system_metrics_path_;
-}
 
 void SystemMetricStorage::save(double cpu, double memory) {
     std::lock_guard<std::mutex> lock(rrdMutex());
@@ -87,4 +89,18 @@ void SystemMetricStorage::createFile() const {
     if (result != 0) {
         throw StorageException("Failed to create RRD file: " + std::string(rrd_get_error()));
     }
+}
+
+void SystemMetricStorage::ensureAccess() const {
+    std::ofstream test(system_metrics_path_);
+
+    if (!test.is_open()) {
+        if (errno == EACCES) {
+            throw PermissionDeniedException(system_metrics_path_);
+        }
+        throw StorageException("Cannot access path: " + system_metrics_path_);
+    }
+
+    test.close();
+    std::filesystem::remove(system_metrics_path_);
 }
